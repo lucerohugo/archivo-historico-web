@@ -16,6 +16,7 @@ interface Registro {
   arc_fech?: string;
   arc_orig?: string;
   arc_npro?: string;
+  arc_fechE?: string;
   arc_seg?: string;
   arc_tema?: string;
   arc_area?: string;
@@ -30,6 +31,7 @@ interface Registro {
   arc_conR?: string;
   arc_foli?: string;
   arc_hoja?: string;
+  arc_cari?: string;
   arc_medi?: string;
   arc_ubsa?: string;
   arc_grup?: string;
@@ -161,13 +163,16 @@ export default function RegistroDetailPage() {
                 Datos principales
               </div>
               <div className="card-body">
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-4 gap-5">
                   <Field label="Año del documento" value={registro.arc_año} />
+                  <Field label="N° Protocolar" value={registro.arc_npro} />
+                  <Field label="Fecha exacta" value={registro.arc_fechE} />
+                  <Field label="Segmento" value={registro.arc_seg} />
+                </div>
+                <div className="mt-5 grid grid-cols-2 gap-5">
                   <Field label="Fecha de recepción" value={registro.arc_fech} />
                   <Field label="Origen" value={registro.arc_orig} />
                   <Field label="Categoría" value={registro.arc_cate} />
-                  <Field label="N° Protocolar" value={registro.arc_npro} />
-                  <Field label="Segmento" value={registro.arc_seg} />
                   {registro.arc_tema && <Field label="Tema" value={registro.arc_tema} />}
                   {registro.arc_area && <Field label="Área" value={registro.arc_area} />}
                   {registro.arc_asun && <div className="col-span-2"><Field label="Asunto" value={registro.arc_asun} /></div>}
@@ -193,6 +198,7 @@ export default function RegistroDetailPage() {
                   <Field label="Cond. reproducción" value={registro.arc_conR} />
                   {registro.arc_foli && <Field label="Folios" value={registro.arc_foli} />}
                   {registro.arc_hoja && <Field label="Hojas" value={registro.arc_hoja} />}
+                  {registro.arc_cari && <Field label="Carillas" value={registro.arc_cari} />}
                   {registro.arc_medi && <Field label="Medidas" value={registro.arc_medi} />}
                 </div>
               </div>

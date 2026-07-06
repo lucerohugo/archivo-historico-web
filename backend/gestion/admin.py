@@ -88,7 +88,7 @@ class RegistroHistoricoAdmin(admin.ModelAdmin):
             'fields': ('arc_orig', 'arc_cate')
         }),
         ('Numeración y Fechas', {
-            'fields': ('arc_año', 'arc_npro', 'arc_seg')
+            'fields': ('arc_año', 'arc_npro','arc_fechE', 'arc_seg')
         }),
         ('Asunto y Alcances', {
             'fields': ('arc_tema', 'arc_area', 'arc_asun', 'arc_inic', 'arc_dest')
@@ -103,10 +103,10 @@ class RegistroHistoricoAdmin(admin.ModelAdmin):
             )
         }),
         ('Ubicación Física', {
-            'fields': ('arc_ubsa', 'arc_pasi', 'arc_estan', 'arc_casi', 'arc_caja')
+            'fields': ('arc_ubsa', 'arc_pasi', 'arc_estan', 'arc_caja')
         }),
         ('Numeración de Documentos', {
-            'fields': ('arc_lega', 'arc_nume', 'arc_foli', 'arc_hoja', 'arc_medi')
+            'fields': ('arc_lega', 'arc_nume', 'arc_foli', 'arc_hoja','arc_casi', 'arc_medi')
         }),
         ('Observaciones', {
             'fields': ('arc_obse',)

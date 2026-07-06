@@ -111,6 +111,7 @@ class RegistroHistorico(models.Model):
         null=True
     )
     arc_npro = models.CharField(max_length=50, verbose_name="Número Protocolar", blank=True, null=True)
+    arc_fechE = models.DateField(verbose_name="Fecha Exacta", null=True)
     arc_seg = models.CharField(max_length=50, verbose_name="Segmento", blank=True, null=True)
     
     # Asunto y alcances
@@ -146,6 +147,7 @@ class RegistroHistorico(models.Model):
     arc_nume = models.CharField(max_length=100, verbose_name="Numero", blank=True, null=True)
     arc_foli = models.CharField(max_length=100, verbose_name="Folios", blank=True, null=True)
     arc_hoja = models.CharField(max_length=100, verbose_name="Hoja", blank=True, null=True)
+    arc_cari = models.CharField(max_length=100, verbose_name="Carillas", blank=True, null=True)
     arc_medi = models.CharField(max_length=100, verbose_name="Medidas", blank=True, null=True)
     
     # Metadata

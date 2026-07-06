@@ -13,12 +13,12 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'almacenamiento', label: 'Almacenamiento' },
   { id: 'archivos', label: 'Archivos' },
 ];
-const SEGMENTOS = ['Histórico', 'Sacramental', 'Administrativo', 'Episcopal', 'Pontificio'];
-const ESTADOS = ['Excelente', 'Bueno', 'Regular', 'Malo', 'Deteriorado'];
-const CONDICIONES = ['Libre', 'Restringido', 'Investigadores', 'Bajo solicitud'];
-const COND_REPRO = ['Permitida', 'Bajo solicitud', 'Permitida con autorización', 'No permitida'];
-const ORIG_COPIA = ['Original', 'Copia', 'Copia certificada', 'Microfilm'];
-const SALAS = ['Archivo Histórico', 'Archivo Reservado', 'Depósito', 'Sala de consulta'];
+const SEGMENTOS = ['Registros', 'Partidas', 'Expedientes', 'Notas', 'Otras'];
+const ESTADOS = ['Excelente', 'Bueno', 'Regular', 'Malo'];
+const CONDICIONES = ['Excelente', 'Bueno', 'Regular', 'Malo'];
+const COND_REPRO = ['Excelente', 'Bueno', 'Regular', 'Malo'];
+const ORIG_COPIA = ['Original', 'Copia'];
+const SALAS = ['Archivo Histórico', 'Archivo Corriente', 'Obispado'];
 
 // NOMBRES DE CAMPOS EXACTOS DEL BACKEND DJANGO
 const INIT = {
@@ -29,6 +29,7 @@ const INIT = {
   arc_cate: '',
   arc_año: String(new Date().getFullYear()),
   arc_npro: '',
+  arc_fechE: '',
   arc_seg: '',
   arc_tema: '',
   arc_area: '',
@@ -41,8 +42,8 @@ const INIT = {
   arc_sser: '',
   arc_sopo: '',
   arc_esta: 'Excelente',
-  arc_conA: 'Libre',
-  arc_conR: 'Permitida',
+  arc_conA: 'Excelente',
+  arc_conR: 'Excelente',
   arc_leng: '',
   arc_orco: 'Original',
   arc_lugD: '',
@@ -55,6 +56,7 @@ const INIT = {
   arc_nume: '',
   arc_foli: '',
   arc_hoja: '',
+  arc_cari: '',
   arc_medi: '',
   arc_obse: '',
 };
@@ -142,6 +144,7 @@ export default function CrearRegistroPage() {
           arc_nume: form.arc_nume,
           arc_foli: form.arc_foli,
           arc_hoja: form.arc_hoja,
+          arc_cari: form.arc_cari,
           arc_medi: form.arc_medi,
           arc_obse: form.arc_obse,
           arc_visw: form.arc_visw === 'publico',
@@ -304,6 +307,7 @@ export default function CrearRegistroPage() {
                     <F label="Número"><input className="form-input" type="text" value={form.arc_nume} onChange={(e) => s('arc_nume', e.target.value)} /></F>
                     <F label="Folios"><input className="form-input" type="text" value={form.arc_foli} onChange={(e) => s('arc_foli', e.target.value)} /></F>
                     <F label="Hojas"><input className="form-input" type="text" value={form.arc_hoja} onChange={(e) => s('arc_hoja', e.target.value)} /></F>
+                    <F label="Carillas"><input className="form-input" type="text" value={form.arc_cari} onChange={(e) => s('arc_cari', e.target.value)} /></F>
                     <F label="Medidas"><input className="form-input" type="text" value={form.arc_medi} onChange={(e) => s('arc_medi', e.target.value)} /></F>
                   </div>
                 </div>

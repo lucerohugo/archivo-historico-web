@@ -59,6 +59,7 @@ export interface RegistroHistoricoDTO {
   arc_cate?: string; // Categoría
   arc_año?: number | null; // Año
   arc_npro?: string; // Número protocolar
+  arc_fechE?: string | null; // Fecha exacta
   arc_seg?: string; // Segmento
   arc_tema?: string; // Tema
   arc_area?: string; // Área
@@ -84,6 +85,7 @@ export interface RegistroHistoricoDTO {
   arc_nume?: string; // Número
   arc_foli?: string; // Folios
   arc_hoja?: string; // Hojas
+  arc_cari?: string; // Carillas
   arc_medi?: string; // Medidas
   arc_obse?: string; // Nota archivero
   arc_parroquia?: number;

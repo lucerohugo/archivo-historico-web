@@ -16,6 +16,7 @@ interface RegistroForm {
   arc_cate: string;
   arc_año: string;
   arc_npro: string;
+  arc_fechE: string;
   arc_seg: string;
   arc_tema: string;
   arc_area: string;
@@ -42,6 +43,7 @@ interface RegistroForm {
   arc_nume: string;
   arc_foli: string;
   arc_hoja: string;
+  arc_cari: string;
   arc_medi: string;
   arc_obse: string;
 }
@@ -52,12 +54,12 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'almacenamiento', label: 'Almacenamiento' },
   { id: 'archivos', label: 'Archivos' },
 ];
-const SEGMENTOS = ['Histórico', 'Sacramental', 'Administrativo', 'Episcopal', 'Pontificio'];
-const ESTADOS = ['Excelente', 'Bueno', 'Regular', 'Malo', 'Deteriorado'];
-const CONDICIONES = ['Libre', 'Restringido', 'Investigadores', 'Bajo solicitud'];
-const COND_REPRO = ['Permitida', 'Bajo solicitud', 'Permitida con autorización', 'No permitida'];
-const ORIG_COPIA = ['Original', 'Copia', 'Copia certificada', 'Microfilm'];
-const SALAS = ['Archivo Histórico', 'Archivo Reservado', 'Depósito', 'Sala de consulta'];
+const SEGMENTOS = ['Registros', 'Partidas', 'Expedientes', 'Notas', 'Otras'];
+const ESTADOS = ['Excelente', 'Bueno', 'Regular', 'Malo'];
+const CONDICIONES = ['Excelente', 'Bueno', 'Regular', 'Malo'];
+const COND_REPRO = ['Excelente', 'Bueno', 'Regular', 'Malo'];
+const ORIG_COPIA = ['Original', 'Copia'];
+const SALAS = ['Archivo Histórico', 'Archivo Corriente', 'Obispado'];
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -113,6 +115,7 @@ export default function EditarRegistroPage() {
           arc_cate: registroData.arc_cate || '',
           arc_año: registroData.arc_año ? String(registroData.arc_año) : '',
           arc_npro: registroData.arc_npro || '',
+          arc_fechE: registroData.arc_fechE || '',
           arc_seg: registroData.arc_seg || '',
           arc_tema: registroData.arc_tema || '',
           arc_area: registroData.arc_area || '',
@@ -139,6 +142,7 @@ export default function EditarRegistroPage() {
           arc_nume: registroData.arc_nume || '',
           arc_foli: registroData.arc_foli || '',
           arc_hoja: registroData.arc_hoja || '',
+          arc_cari: registroData.arc_cari || '',
           arc_medi: registroData.arc_medi || '',
           arc_obse: registroData.arc_obse || '',
         };
@@ -190,6 +194,7 @@ export default function EditarRegistroPage() {
       arc_cate: form.arc_cate,
       arc_año: form.arc_año ? parseInt(form.arc_año) : null,
       arc_npro: form.arc_npro,
+      arc_fechE: form.arc_fechE || null,
       arc_seg: form.arc_seg,
       arc_tema: form.arc_tema,
       arc_area: form.arc_area,
@@ -216,6 +221,7 @@ export default function EditarRegistroPage() {
       arc_nume: form.arc_nume,
       arc_foli: form.arc_foli,
       arc_hoja: form.arc_hoja,
+      arc_cari: form.arc_cari,
       arc_medi: form.arc_medi,
       arc_obse: form.arc_obse,
     };
@@ -307,9 +313,10 @@ export default function EditarRegistroPage() {
               </div>
             </Card>
             <Card title="Numeración y fechas">
-              <div className="form-grid-3">
+              <div className="form-grid-4">
                 <F label="Año"><input className="form-input" type="number" value={form.arc_año} onChange={(e) => s('arc_año', e.target.value)} /></F>
                 <F label="Número protocolar"><input className="form-input" type="text" value={form.arc_npro} onChange={(e) => s('arc_npro', e.target.value)} /></F>
+                <F label="Fecha exacta"><input className="form-input" type="date" value={form.arc_fechE} onChange={(e) => s('arc_fechE', e.target.value)} /></F>
                 <F label="Segmento"><select className="form-select" value={form.arc_seg} onChange={(e) => s('arc_seg', e.target.value)}><option value="">Seleccionar</option>{SEGMENTOS.map((v) => <option key={v} value={v}>{v}</option>)}</select></F>
               </div>
             </Card>
@@ -354,8 +361,10 @@ export default function EditarRegistroPage() {
                     <F label="Casillero"><input className="form-input" type="text" value={form.arc_casi} onChange={(e) => s('arc_casi', e.target.value)} /></F>
                     <F label="Caja N°"><input className="form-input" type="text" value={form.arc_caja} onChange={(e) => s('arc_caja', e.target.value)} /></F>
                     <F label="Legajo"><input className="form-input" type="text" value={form.arc_lega} onChange={(e) => s('arc_lega', e.target.value)} /></F>
+                    <F label="Número"><input className="form-input" type="text" value={form.arc_nume} onChange={(e) => s('arc_nume', e.target.value)} /></F>
                     <F label="Folios"><input className="form-input" type="text" value={form.arc_foli} onChange={(e) => s('arc_foli', e.target.value)} /></F>
                     <F label="Hojas"><input className="form-input" type="text" value={form.arc_hoja} onChange={(e) => s('arc_hoja', e.target.value)} /></F>
+                    <F label="Carillas"><input className="form-input" type="text" value={form.arc_cari} onChange={(e) => s('arc_cari', e.target.value)} /></F>
                     <F label="Medidas"><input className="form-input" type="text" value={form.arc_medi} onChange={(e) => s('arc_medi', e.target.value)} /></F>
                   </div>
                 </div>
