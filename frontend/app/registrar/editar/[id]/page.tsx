@@ -83,6 +83,10 @@ export default function EditarRegistroPage() {
   const params = useParams();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('datos');
+  const goToTab = (t: Tab) => {
+    setTab(t);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -451,9 +455,9 @@ export default function EditarRegistroPage() {
         <div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
           <Link href="/admin/registros" className="btn-back">Cancelar</Link>
           <div className="flex items-center gap-2.5">
-            {tab !== 'datos' && <button className="btn-secondary" onClick={() => setTab(tab === 'archivos' ? 'almacenamiento' : 'datos')}> Anterior</button>}
+            {tab !== 'datos' && <button className="btn-secondary" onClick={() => goToTab(tab === 'archivos' ? 'almacenamiento' : 'datos')}> Anterior</button>}
             {tab !== 'archivos' ? (
-              <button className="btn-primary" onClick={() => setTab(tab === 'datos' ? 'almacenamiento' : 'archivos')}>Siguiente</button>
+              <button className="btn-primary" onClick={() => goToTab(tab === 'datos' ? 'almacenamiento' : 'archivos')}>Siguiente</button>
             ) : (
               <button className="btn-primary" onClick={submit} disabled={saving}>
                 {saving ? 'Guardando...' : <><CheckCircle size={13} /> Guardar cambios</>}

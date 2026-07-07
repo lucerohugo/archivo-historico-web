@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { PlusCircle, List, BookOpen, Archive, FileText } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
-import { getRegistros } from '@/lib/api';
+import { getRegistros, getRegistrosStats } from '@/lib/api';
 
 interface Registro {
   arc_codi: number;
@@ -17,22 +17,26 @@ interface Registro {
 
 export default function RegistrarPage() {
   const [registros, setRegistros] = useState<Registro[]>([]);
+  const [stats, setStats] = useState({ total: 0, publicos: 0, privados: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadRegistros = async () => {
-      const { data, error } = await getRegistros();
+    const loadData = async () => {
+      const [{ data }, { data: statsData }] = await Promise.all([
+        getRegistros(),
+        getRegistrosStats(),
+      ]);
       if (data) {
-        const registrosArray = Array.isArray(data) ? data : (data.results || []);
-        setRegistros(registrosArray);
+        setRegistros((data.results || []) as unknown as Registro[]);
+      }
+      if (statsData) {
+        setStats(statsData);
       }
       setLoading(false);
     };
-    loadRegistros();
+    loadData();
   }, []);
 
-  const publicCount = registros.filter((r) => r.arc_visw === true).length;
-  const privateCount = registros.filter((r) => r.arc_visw === false).length;
   const recent = registros.slice(0, 5);
 
   return (
@@ -51,9 +55,9 @@ export default function RegistrarPage() {
         {/* Stats */}
         <div className="mb-8 grid grid-cols-3 gap-4">
           {[
-            { label: 'Total de registros', value: registros.length, icon: Archive, color: 'text-sky-800', bg: 'bg-sky-50' },
-            { label: 'Registros públicos', value: publicCount, icon: BookOpen, color: 'text-emerald-700', bg: 'bg-emerald-50' },
-            { label: 'Registros privados', value: privateCount, icon: FileText, color: 'text-red-600', bg: 'bg-red-50' },
+            { label: 'Total de registros', value: stats.total, icon: Archive, color: 'text-sky-800', bg: 'bg-sky-50' },
+            { label: 'Registros públicos', value: stats.publicos, icon: BookOpen, color: 'text-emerald-700', bg: 'bg-emerald-50' },
+            { label: 'Registros privados', value: stats.privados, icon: FileText, color: 'text-red-600', bg: 'bg-red-50' },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${bg}`}>

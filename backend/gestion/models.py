@@ -95,8 +95,8 @@ class RegistroHistorico(models.Model):
     
     # Datos principales
     arc_codi = models.AutoField(primary_key=True)
-    arc_fech = models.DateField(verbose_name="Fecha")
-    arc_titu = models.CharField(max_length=255, verbose_name="Título")
+    arc_fech = models.DateField(verbose_name="Fecha",blank=True, null=True)
+    arc_titu = models.CharField(max_length=255, verbose_name="Título", blank=True, null=True)
     arc_desc = models.TextField(verbose_name="Descripción", blank=True, null=True)
     
     # Referencias y clasificación

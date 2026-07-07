@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Localidad, Provincia, General, Parroquia, Sacerdote, RegistroHistorico, ArchivoAdjunto, Login
+from .filters import RegistroHistoricoFilter
 from .serializers import (
     LocalidadSerializer, ProvinciaSerializer, GeneralSerializer,
     ParroquiaSerializer, SacerdoteSerializer, RegistroHistoricoSerializer, ArchivoAdjuntoSerializer,
@@ -131,17 +132,24 @@ class PublicRegistroHistoricoViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RegistroHistoricoSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['arc_codi', 'arc_titu', 'arc_desc', 'arc_asun']
-    filterset_fields = ['arc_año', 'arc_cate', 'arc_tema', 'arc_parroquia']
-    ordering_fields = ['arc_fech', 'arc_año']
+    search_fields = ['arc_titu', 'arc_año']
+    filterset_class = RegistroHistoricoFilter
+    ordering_fields = ['arc_fech', 'arc_año', 'arc_codi']
     ordering = ['-arc_fech']
-    
+
     def get_queryset(self):
         """Solo documentos públicos y activos, con archivos precargados"""
         return RegistroHistorico.objects.filter(
             arc_visw=True,
             arc_acti=True
         ).prefetch_related('archivos').order_by('-arc_fech')
+
+    @action(detail=False, methods=['get'])
+    def categorias(self, request):
+        """Lista de categorías distintas presentes en los registros públicos"""
+        cats = self.get_queryset().exclude(arc_cate__isnull=True).exclude(arc_cate='') \
+            .values_list('arc_cate', flat=True).distinct().order_by('arc_cate')
+        return Response(list(cats))
 
 
 # ================================================================
@@ -161,21 +169,35 @@ class RegistroHistoricoViewSet(viewsets.ModelViewSet):
     serializer_class = RegistroHistoricoSerializer
     permission_classes = [permissions.AllowAny]  # Temporarily AllowAny - PHASE 5
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['arc_codi', 'arc_titu', 'arc_desc', 'arc_asun']
-    filterset_fields = ['arc_año', 'arc_cate', 'arc_tema', 'arc_parroquia', 'arc_sacerdote', 'arc_visw', 'arc_acti']
-    ordering_fields = ['arc_fech', 'arc_año', 'arc_fechr']
+    search_fields = ['arc_codi', 'arc_titu', 'arc_año']
+    filterset_class = RegistroHistoricoFilter
+    ordering_fields = ['arc_fech', 'arc_año', 'arc_fechr', 'arc_codi', 'arc_visw']
     ordering = ['-arc_fech']
-    
+
     def get_queryset(self):
         """Todos los registros para usuarios autenticados, con archivos precargados"""
         return RegistroHistorico.objects.prefetch_related('archivos').all().order_by('-arc_fech')
-    
+
     @action(detail=False, methods=['get'])
     def next_code(self, request):
         """Retorna el siguiente código autonumérico"""
         last_registro = RegistroHistorico.objects.order_by('-arc_codi').first()
         next_code = (last_registro.arc_codi + 1) if last_registro else 1
         return Response({'next_code': next_code})
+
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Conteos totales de registros públicos/privados, calculados en la base de datos"""
+        total = RegistroHistorico.objects.count()
+        publicos = RegistroHistorico.objects.filter(arc_visw=True).count()
+        return Response({'total': total, 'publicos': publicos, 'privados': total - publicos})
+
+    @action(detail=False, methods=['get'])
+    def categorias(self, request):
+        """Lista de categorías distintas presentes en todos los registros"""
+        cats = RegistroHistorico.objects.exclude(arc_cate__isnull=True).exclude(arc_cate='') \
+            .values_list('arc_cate', flat=True).distinct().order_by('arc_cate')
+        return Response(list(cats))
 
 
 # ================================================================

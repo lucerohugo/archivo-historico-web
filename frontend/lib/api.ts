@@ -112,18 +112,64 @@ export interface ArchivoAdjuntoDTO {
   fecha_carga: string;
 }
 
-/**
- * GET - Obtener todos los registros (requiere login)
- */
-export async function getRegistros() {
-  return apiCall<RegistroHistoricoDTO[] | Paginated<RegistroHistoricoDTO>>('/registros/');
+export interface RegistrosQueryParams {
+  page?: number;
+  search?: string;
+  anioDesde?: string | number;
+  anioHasta?: string | number;
+  fechaDesde?: string;
+  fechaHasta?: string;
+  categoria?: string;
+  ordering?: string;
+}
+
+function buildRegistrosQuery(params: RegistrosQueryParams = {}): string {
+  const qs = new URLSearchParams();
+  if (params.page) qs.set('page', String(params.page));
+  if (params.search) qs.set('search', params.search);
+  if (params.anioDesde) qs.set('arc_año_min', String(params.anioDesde));
+  if (params.anioHasta) qs.set('arc_año_max', String(params.anioHasta));
+  if (params.fechaDesde) qs.set('arc_fech_desde', params.fechaDesde);
+  if (params.fechaHasta) qs.set('arc_fech_hasta', params.fechaHasta);
+  if (params.categoria) qs.set('arc_cate', params.categoria);
+  if (params.ordering) qs.set('ordering', params.ordering);
+  const s = qs.toString();
+  return s ? `?${s}` : '';
 }
 
 /**
- * GET - Obtener registros públicos (sin login)
+ * GET - Obtener registros paginados (requiere login)
  */
-export async function getRegistrosPublicos() {
-  return apiCall<RegistroHistoricoDTO[] | Paginated<RegistroHistoricoDTO>>('/public/registros/');
+export async function getRegistros(params: RegistrosQueryParams = {}) {
+  return apiCall<Paginated<RegistroHistoricoDTO>>(`/registros/${buildRegistrosQuery(params)}`);
+}
+
+/**
+ * GET - Obtener categorías distintas (requiere login)
+ */
+export async function getRegistrosCategorias() {
+  return apiCall<string[]>('/registros/categorias/');
+}
+
+/**
+ * GET - Conteos totales de registros (público/privado), calculados en el backend
+ */
+export async function getRegistrosStats() {
+  return apiCall<{ total: number; publicos: number; privados: number }>('/registros/stats/');
+}
+
+/**
+ * GET - Obtener registros públicos paginados (sin login)
+ */
+export async function getRegistrosPublicos(params: RegistrosQueryParams = {}) {
+  return apiCall<Paginated<RegistroHistoricoDTO>>(`/public/registros/${buildRegistrosQuery(params)}`);
+}
+
+/**
+ * GET - Obtener categorías distintas públicas (sin login)
+ */
+export async function getRegistrosPublicosCategorias() {
+  return apiCall<string[]>('/public/registros/categorias/');
 }
 
 /**

@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Calendar, Trash2, Pencil, PlusCircle, ChevronUp, ChevronDown } from 'lucide-react';
+import { Search, Calendar, Trash2, Pencil, PlusCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import { getRegistros, deleteRegistro } from '@/lib/api';
+
+const PAGE_SIZE = 50;
 
 interface Registro {
   arc_codi: number;
@@ -15,72 +17,83 @@ interface Registro {
   archivos?: Array<{ id: number; nombre: string; tipo: string; archivo: string }>;
 }
 
-type SortKey = 'arc_codi' | 'arc_fech' | 'arc_año';
+type SortKey = 'arc_codi' | 'arc_fech' | 'arc_año' | 'arc_visw';
 type SortDir = 'asc' | 'desc';
 
 export default function AdminRegistrosPage() {
   const [registros, setRegistros] = useState<Registro[]>([]);
+  const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+
   const [query, setQuery] = useState('');
-  const [anioFilter, setAnioFilter] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [anioDesde, setAnioDesde] = useState('');
+  const [anioHasta, setAnioHasta] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('arc_codi');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [page, setPage] = useState(1);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
-  // Cargar registros del backend
+  // Debounce del buscador: espera 300ms sin escritura antes de disparar la búsqueda
   useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  // Al cambiar cualquier filtro u orden, volver a la página 1
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, anioDesde, anioHasta, dateFrom, dateTo, sortKey, sortDir]);
+
+  useEffect(() => {
+    let cancelled = false;
     const loadRegistros = async () => {
       setLoading(true);
-      const result = await getRegistros();
+      const result = await getRegistros({
+        page,
+        search: debouncedQuery || undefined,
+        anioDesde: anioDesde || undefined,
+        anioHasta: anioHasta || undefined,
+        fechaDesde: dateFrom || undefined,
+        fechaHasta: dateTo || undefined,
+        ordering: `${sortDir === 'asc' ? '' : '-'}${sortKey}`,
+      });
+      if (cancelled) return;
       if (result.data) {
-        const data = result.data;
-        // Manejar si la API retorna un array o un objeto con resultados
-        const registrosArray = Array.isArray(data) ? data : (data.results ?? []);
-        setRegistros(registrosArray as Registro[]);
+        setRegistros((result.data.results || []) as unknown as Registro[]);
+        setCount(result.data.count ?? 0);
       }
       setLoading(false);
     };
     loadRegistros();
-  }, []);
-
-  const allYears = useMemo(() => {
-    return Array.from(new Set(registros.map((r) => r.arc_año).filter(Boolean))).sort((a, b) => (b || 0) - (a || 0));
-  }, [registros]);
+    return () => { cancelled = true; };
+  }, [page, debouncedQuery, anioDesde, anioHasta, dateFrom, dateTo, sortKey, sortDir]);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else { setSortKey(key); setSortDir('desc'); }
   };
 
-  const filtered = useMemo(() => {
-    let list = registros.filter((r) => {
-      const q = query.toLowerCase();
-      const matchQuery = !q || r.arc_titu.toLowerCase().includes(q) || String(r.arc_codi).includes(q) || String(r.arc_año).includes(q);
-      const matchAnio = !anioFilter || String(r.arc_año) === anioFilter;
-      const matchFrom = !dateFrom || r.arc_fech >= dateFrom;
-      const matchTo = !dateTo || r.arc_fech <= dateTo;
-      return matchQuery && matchAnio && matchFrom && matchTo;
-    });
-    list = [...list].sort((a, b) => {
-      const av = sortKey === 'arc_codi' ? a.arc_codi : sortKey === 'arc_año' ? (a.arc_año ?? 0) : a.arc_fech;
-      const bv = sortKey === 'arc_codi' ? b.arc_codi : sortKey === 'arc_año' ? (b.arc_año ?? 0) : b.arc_fech;
-      return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
-    });
-    return list;
-  }, [registros, query, anioFilter, dateFrom, dateTo, sortKey, sortDir]);
-
   const handleDelete = async (id: number) => {
     const result = await deleteRegistro(id);
     if (!result.error) {
       setRegistros((r) => r.filter((reg) => reg.arc_codi !== id));
+      setCount((c) => Math.max(0, c - 1));
     }
     setDeleteConfirm(null);
   };
 
-  const clearFilters = () => { setQuery(''); setAnioFilter(''); setDateFrom(''); setDateTo(''); };
-  const hasFilters = query || anioFilter || dateFrom || dateTo;
+  const clearFilters = () => {
+    setQuery('');
+    setAnioDesde('');
+    setAnioHasta('');
+    setDateFrom('');
+    setDateTo('');
+  };
+  const hasFilters = query || anioDesde || anioHasta || dateFrom || dateTo;
+  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
   function SortIcon({ col }: { col: SortKey }) {
     if (sortKey !== col) return <ChevronUp size={10} className="opacity-30" />;
@@ -106,7 +119,7 @@ export default function AdminRegistrosPage() {
                 Administración
               </p>
               <h1 className="page-title">Todos los registros históricos</h1>
-              <p className="page-subtitle">{registros.length} registros en total — públicos y privados</p>
+              <p className="page-subtitle">{count} registros en total — públicos y privados</p>
             </div>
             <Link href="/registrar/crear" className="btn-primary">
               <PlusCircle size={14} />
@@ -134,16 +147,7 @@ export default function AdminRegistrosPage() {
                 />
               </div>
             </div>
-            <div className="min-w-[140px]">
-              <label className="filter-label">
-                <Calendar size={10} className="mr-1 inline" />
-                Filtrar por año
-              </label>
-              <select className="form-select" value={anioFilter} onChange={(e) => setAnioFilter(e.target.value)}>
-                <option value="">Todos los años</option>
-                {allYears.map((y) => <option key={y} value={y}>{y}</option>)}
-              </select>
-            </div>
+            
             <div className="min-w-[140px]">
               <label className="filter-label">Fecha desde</label>
               <input className="form-input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
@@ -193,20 +197,27 @@ export default function AdminRegistrosPage() {
                           Año <SortIcon col="arc_año" />
                         </button>
                       </th>
-                      <th>Visibilidad</th>
+                      <th>
+                        <button
+                          onClick={() => toggleSort('arc_visw')}
+                          className="flex items-center gap-1 bg-transparent border-none text-[10px] font-bold uppercase tracking-[0.1em] text-white cursor-pointer"
+                        >
+                          Visibilidad <SortIcon col="arc_visw" />
+                        </button>
+                      </th>
                       <th>Archivos</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.length === 0 ? (
+                    {registros.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-10 text-center text-sm text-slate-400">
+                        <td colSpan={7} className="py-10 text-center text-sm text-slate-400">
                           No se encontraron registros.
                         </td>
                       </tr>
                     ) : (
-                      filtered.map((r) => (
+                      registros.map((r) => (
                         <tr key={r.arc_codi}>
                           <td>
                             <span className="text-[13px] font-bold text-sky-700">{r.arc_codi}</span>
@@ -285,11 +296,32 @@ export default function AdminRegistrosPage() {
                 </table>
               </div>
 
-              {filtered.length > 0 && (
+              {count > 0 && (
                 <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
                   <span className="text-[11px] text-slate-400">
-                    {filtered.length} registro{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}
+                    {count} registro{count !== 1 ? 's' : ''} en total
                   </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      className="btn-secondary"
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    >
+                      <ChevronLeft size={14} />
+                      Anterior
+                    </button>
+                    <span className="text-[11px] text-slate-400">
+                      Página {page} de {totalPages}
+                    </span>
+                    <button
+                      className="btn-secondary"
+                      disabled={page >= totalPages}
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    >
+                      Siguiente
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
                 </div>
               )}
             </>

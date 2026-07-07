@@ -121,7 +121,7 @@ export default function RegistroDetailPage() {
           <AlertCircle size={36} className="mx-auto mb-4 text-slate-300" />
           <h2 className="mb-2 text-xl font-semibold text-slate-700">Registro no encontrado</h2>
           <p className="mb-6 text-sm text-slate-500">
-            Este registro no existe o no está disponible públicamente.
+            Este registro no existe o no está disponible.
           </p>
           <Link href="/registros" className="btn-primary">Volver al archivo</Link>
         </div>
@@ -133,6 +133,10 @@ export default function RegistroDetailPage() {
     <div className="page-container">
       <AppHeader breadcrumb={[{ label: 'Registros', href: '/registros' }, { label: `N° ${registro.arc_codi}` }]} />
       <div className="content-wrapper pb-16 pt-10">
+        <Link href="/registros" className="btn-primary mb-4 inline-flex">
+          Volver
+        </Link>
+
         {/* Page header */}
         <div className="page-header">
           <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -281,10 +285,6 @@ export default function RegistroDetailPage() {
                 </div>
               </div>
             )}
-
-            <Link href="/registros" className="btn-back flex w-full justify-center">
-              Volver al archivo
-            </Link>
           </div>
         </div>
       </div>

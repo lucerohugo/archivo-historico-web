@@ -75,7 +75,7 @@ class SacerdoteAdmin(admin.ModelAdmin):
 @admin.register(RegistroHistorico)
 class RegistroHistoricoAdmin(admin.ModelAdmin):
     list_display = ['arc_codi', 'arc_titu', 'arc_fech', 'arc_año', 'arc_visw', 'arc_acti']
-    list_filter = ['arc_acti', 'arc_visw', 'arc_año', 'arc_cate', 'arc_tema']
+    list_filter = ['arc_acti', 'arc_visw', 'arc_año', 'arc_cate', 'arc_tema', 'arc_orig']
     search_fields = ['arc_codi', 'arc_titu', 'arc_desc', 'arc_asun']
     readonly_fields = ['arc_codi', 'arc_fechr', 'arc_fechm']
     date_hierarchy = 'arc_fech'

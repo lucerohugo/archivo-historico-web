@@ -82,6 +82,10 @@ function F({ label, children, wide }: { label: string; children: React.ReactNode
 export default function CrearRegistroPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('datos');
+  const goToTab = (t: Tab) => {
+    setTab(t);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   const [form, setForm] = useState(INIT);
   const [files, setFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
@@ -205,7 +209,7 @@ export default function CrearRegistroPage() {
         <div className="tab-nav">
           {TABS.map((t, i) => (
             <button key={t.id} className={`tab-btn${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id)}>
-              <span className={`mr-2 inline-flex h-4.5 w-4.5 items-center justify-center rounded-full text-[9px] font-bold ${tab === t.id ? 'bg-sky-800 text-white' : 'bg-slate-200 text-slate-500'}`}>
+              <span className={`mr-2 inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${tab === t.id ? 'bg-sky-800 text-white' : 'bg-slate-200 text-slate-500'}`}>
                 {i + 1}
               </span>
               {t.label}
@@ -277,7 +281,7 @@ export default function CrearRegistroPage() {
           <div>
             <Card title="Grupos y series">
               <div className="form-grid-3">
-                <F label="Grupo"><input className="form-input" type="text" value={form.arc_grup} onChange={(e) => s('arc_grup', e.target.value)} placeholder="Ej: Registros sacramentales" /></F>
+                <F label="Grupo"><input className="form-input" type="text" value={form.arc_grup} onChange={(e) => s('arc_grup', e.target.value)} placeholder="" /></F>
                 <F label="Serie"><input className="form-input" type="text" value={form.arc_seri} onChange={(e) => s('arc_seri', e.target.value)} /></F>
                 <F label="Sub serie"><input className="form-input" type="text" value={form.arc_sser} onChange={(e) => s('arc_sser', e.target.value)} /></F>
               </div>
@@ -286,11 +290,11 @@ export default function CrearRegistroPage() {
             <Card title="Conservación y ubicación">
               <div className="flex flex-col gap-5">
                 <div className="form-grid-2">
-                  <F label="Soporte"><input className="form-input" type="text" value={form.arc_sopo} onChange={(e) => s('arc_sopo', e.target.value)} placeholder="Ej: Papel, Pergamino..." /></F>
+                  <F label="Soporte"><input className="form-input" type="text" value={form.arc_sopo} onChange={(e) => s('arc_sopo', e.target.value)} placeholder="" /></F>
                   <F label="Estado de conservación"><select className="form-select" value={form.arc_esta} onChange={(e) => s('arc_esta', e.target.value)}>{ESTADOS.map((v) => <option key={v} value={v}>{v}</option>)}</select></F>
                   <F label="Cond. de acceso"><select className="form-select" value={form.arc_conA} onChange={(e) => s('arc_conA', e.target.value)}>{CONDICIONES.map((v) => <option key={v} value={v}>{v}</option>)}</select></F>
                   <F label="Cond. de reproducción"><select className="form-select" value={form.arc_conR} onChange={(e) => s('arc_conR', e.target.value)}>{COND_REPRO.map((v) => <option key={v} value={v}>{v}</option>)}</select></F>
-                  <F label="Lengua / Escritura"><input className="form-input" type="text" value={form.arc_leng} onChange={(e) => s('arc_leng', e.target.value)} placeholder="Ej: Español, Latín..." /></F>
+                  <F label="Lengua / Escritura"><input className="form-input" type="text" value={form.arc_leng} onChange={(e) => s('arc_leng', e.target.value)} placeholder="" /></F>
                   <F label="Original / Copia"><select className="form-select" value={form.arc_orco} onChange={(e) => s('arc_orco', e.target.value)}>{ORIG_COPIA.map((v) => <option key={v} value={v}>{v}</option>)}</select></F>
                   <F label="Lugar destino"><input className="form-input" type="text" value={form.arc_lugD} onChange={(e) => s('arc_lugD', e.target.value)} /></F>
                   <F label="Ubicación sala"><select className="form-select" value={form.arc_ubsa} onChange={(e) => s('arc_ubsa', e.target.value)}>{SALAS.map((v) => <option key={v} value={v}>{v}</option>)}</select></F>
@@ -383,12 +387,12 @@ export default function CrearRegistroPage() {
           <Link href="/registrar" className="btn-back">Cancelar y salir</Link>
           <div className="flex items-center gap-2.5">
             {tab !== 'datos' && (
-              <button className="btn-secondary" onClick={() => setTab(tab === 'archivos' ? 'almacenamiento' : 'datos')}>
+              <button className="btn-secondary" onClick={() => goToTab(tab === 'archivos' ? 'almacenamiento' : 'datos')}>
                 Anterior
               </button>
             )}
             {tab !== 'archivos' ? (
-              <button className="btn-primary" onClick={() => setTab(tab === 'datos' ? 'almacenamiento' : 'archivos')}>
+              <button className="btn-primary" onClick={() => goToTab(tab === 'datos' ? 'almacenamiento' : 'archivos')}>
                 Siguiente
               </button>
             ) : (

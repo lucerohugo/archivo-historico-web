@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, BookOpen, ChevronRight } from 'lucide-react';
+import { Search, BookOpen, ChevronRight, ChevronLeft } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
-import { getRegistrosPublicos } from '@/lib/api';
+import { getRegistrosPublicos, getRegistrosPublicosCategorias } from '@/lib/api';
+
+const PAGE_SIZE = 50;
 
 interface RegistroPublico {
   arc_codi: number;
@@ -18,46 +20,67 @@ interface RegistroPublico {
 
 export default function RegistrosPage() {
   const [registros, setRegistros] = useState<RegistroPublico[]>([]);
+  const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState('');
-  const [anioFilter, setAnioFilter] = useState('');
-  const [catFilter, setCatFilter] = useState('');
+  const [categorias, setCategorias] = useState<string[]>([]);
 
-  // Cargar registros públicos del backend
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [catFilter, setCatFilter] = useState('');
+  const [page, setPage] = useState(1);
+
+  // Cargar la lista de categorías una sola vez
   useEffect(() => {
+    getRegistrosPublicosCategorias().then((result) => {
+      if (result.data) setCategorias(result.data);
+    });
+  }, []);
+
+  // Debounce del buscador: espera 300ms sin escritura antes de disparar la búsqueda
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  // Al cambiar cualquier filtro, volver a la página 1
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, dateFrom, dateTo, catFilter]);
+
+  // Traer del backend la página correspondiente según búsqueda/filtros actuales
+  useEffect(() => {
+    let cancelled = false;
     const loadRegistros = async () => {
       setLoading(true);
-      const result = await getRegistrosPublicos();
+      const result = await getRegistrosPublicos({
+        page,
+        search: debouncedQuery || undefined,
+        fechaDesde: dateFrom || undefined,
+        fechaHasta: dateTo || undefined,
+        categoria: catFilter || undefined,
+      });
+      if (cancelled) return;
       if (result.data) {
-        const data = result.data;
-        // Manejar si la API retorna un array o un objeto con resultados
-        const registrosArray = Array.isArray(data) ? data : (data.results || []);
-        setRegistros(registrosArray as RegistroPublico[]);
+        setRegistros((result.data.results || []) as unknown as RegistroPublico[]);
+        setCount(result.data.count ?? 0);
       }
       setLoading(false);
     };
     loadRegistros();
-  }, []);
+    return () => { cancelled = true; };
+  }, [page, debouncedQuery, dateFrom, dateTo, catFilter]);
 
-  const allYears = useMemo(() => {
-    return Array.from(new Set(registros.map((r) => r.arc_año).filter(Boolean))).sort((a, b) => (b || 0) - (a || 0));
-  }, [registros]);
+  const hasFilters = query || dateFrom || dateTo || catFilter;
+  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
-  const allCategorias = useMemo(() => {
-    return Array.from(new Set(registros.map((r) => r.arc_cate).filter(Boolean)));
-  }, [registros]);
-
-  const filtered = useMemo(() => {
-    return registros.filter((r) => {
-      const q = query.toLowerCase();
-      const matchQ = !q || r.arc_titu.toLowerCase().includes(q) || String(r.arc_codi).includes(q) || r.arc_orig?.toLowerCase().includes(q) || r.arc_desc?.toLowerCase().includes(q) || String(r.arc_año).includes(q);
-      const matchA = !anioFilter || String(r.arc_año) === anioFilter;
-      const matchC = !catFilter || r.arc_cate === catFilter;
-      return matchQ && matchA && matchC;
-    });
-  }, [registros, query, anioFilter, catFilter]);
-
-  const hasFilters = query || anioFilter || catFilter;
+  const clearFilters = () => {
+    setQuery('');
+    setDateFrom('');
+    setDateTo('');
+    setCatFilter('');
+  };
 
   return (
     <div className="page-container">
@@ -65,7 +88,7 @@ export default function RegistrosPage() {
       <div className="content-wrapper pb-16 pt-10">
         {/* Page header */}
         <div className="page-header">
-          <Link href="/" className="btn-back mb-4 inline-flex ">
+          <Link href="/" className="btn-primary mb-4 inline-flex ">
             Inicio
           </Link>
           <div className="flex items-end justify-between">
@@ -75,10 +98,9 @@ export default function RegistrosPage() {
               </p>
               <h1 className="page-title">Registros Históricos</h1>
               <p className="page-subtitle">
-                {registros.length} documentos disponibles
+                {count} documentos disponibles
               </p>
             </div>
-            {/* <Link href="/" className="btn-back">Inicio</Link> */}
           </div>
         </div>
 
@@ -94,29 +116,27 @@ export default function RegistrosPage() {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar por título, código, origen..."
+                  placeholder="Buscar por título o año..."
                 />
               </div>
             </div>
-            <div className="min-w-[150px]">
-              <label className="filter-label">Año</label>
-              <select className="form-select" value={anioFilter} onChange={(e) => setAnioFilter(e.target.value)}>
-                <option value="">Todos los años</option>
-                {allYears.map((y) => <option key={y} value={y}>{y}</option>)}
-              </select>
+            <div className="min-w-[140px]">
+              <label className="filter-label">Fecha desde</label>
+              <input className="form-input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            </div>
+            <div className="min-w-[140px]">
+              <label className="filter-label">Fecha hasta</label>
+              <input className="form-input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
             </div>
             <div className="min-w-[180px]">
               <label className="filter-label">Categoría</label>
               <select className="form-select" value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
                 <option value="">Todas las categorías</option>
-                {allCategorias.map((c) => <option key={c} value={c}>{c}</option>)}
+                {categorias.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             {hasFilters && (
-              <button
-                onClick={() => { setQuery(''); setAnioFilter(''); setCatFilter(''); }}
-                className="btn-secondary"
-              >
+              <button onClick={clearFilters} className="btn-secondary">
                 Limpiar
               </button>
             )}
@@ -129,7 +149,7 @@ export default function RegistrosPage() {
             <BookOpen size={36} className="mb-4 text-slate-300" />
             <p className="text-lg font-medium text-slate-400">Cargando registros...</p>
           </div>
-        ) : filtered.length === 0 ? (
+        ) : registros.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <BookOpen size={36} className="mb-4 text-slate-300" />
             <p className="text-lg font-medium text-slate-400">Sin resultados</p>
@@ -139,7 +159,7 @@ export default function RegistrosPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {filtered.map((r) => (
+            {registros.map((r) => (
               <Link key={r.arc_codi} href={`/registros/${r.arc_codi}`} className="no-underline">
                 <div className="group flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-sky-200 hover:shadow-md">
                   {/* Code badge */}
@@ -155,7 +175,7 @@ export default function RegistrosPage() {
                           {r.arc_cate}
                         </span>
                       )}
-                      <span className="text-xs text-slate-400">
+                      <span className="text-sm font-semibold text-slate-500">
                         {r.arc_año || '—'} · {r.arc_orig || '—'}
                       </span>
                     </div>
@@ -178,10 +198,28 @@ export default function RegistrosPage() {
           </div>
         )}
 
-        {filtered.length > 0 && (
-          <p className="mt-6 text-center text-[11px] text-slate-400">
-            Mostrando {filtered.length} de {registros.length} registros
-          </p>
+        {!loading && count > 0 && (
+          <div className="mt-6 flex items-center justify-center gap-4">
+            <button
+              className="btn-secondary"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              <ChevronLeft size={14} />
+              Anterior
+            </button>
+            <span className="text-[11px] text-slate-400">
+              Página {page} de {totalPages} · {count} registros
+            </span>
+            <button
+              className="btn-secondary"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Siguiente
+              <ChevronRight size={14} />
+            </button>
+          </div>
         )}
       </div>
     </div>

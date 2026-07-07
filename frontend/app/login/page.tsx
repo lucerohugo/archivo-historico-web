@@ -43,7 +43,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4">
       {/* Back */}
       <div className="absolute left-6 top-6">
-        <Link href="/" className="btn-back">Inicio</Link>
+        <Link href="/" className="btn-primary">Inicio</Link>
       </div>
 
       {/* Card */}

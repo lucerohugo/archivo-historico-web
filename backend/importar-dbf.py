@@ -1,160 +1,169 @@
 import os
-import sys
 import django
+from datetime import date
 from dbfread import DBF
-from pathlib import Path
 
-# =========================
-# CONFIG DJANGO
-# =========================
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from gestion.models import RegistroHistorico
 
-# =========================
-# ARCHIVO DBF
-# =========================
-DBF_FILE = Path(__file__).resolve().parent / "dbf" / "arch.dbf"
 
-# =========================
-# MAPEO DBF -> DJANGO
-# =========================
-FIELD_MAP = {
-    "arc_codi": "arc_codi",
-    "arc_titu": "arc_titu",
-    "arc_desc": "arc_desc",
-    "arc_oriC": "arc_orig",
-    "arc_ano": "arc_año",
-    "arc_prot": "arc_npro",
-    "arc_fecR": "arc_fech",
-    "arc_fech": "arc_fechE",
-    "arc_cate": "arc_cate",
-    "art_tema": "arc_tema",
-    "arc_asun": "arc_asun",
-    "arc_inic": "arc_inic",
-    "arc_dest": "arc_dest",
-    "arc_grup": "arc_grup",
-    "arc_gruS": "arc_seri",
-    "arc_mate": "arc_sopo",
-    "arc_area": "arc_area",
-    "arc_esta": "arc_esta",
-    "arc_caja": "arc_caja",
-    "arc_lega": "arc_lega",
-    "arc_nume": "arc_nume",
-    "arc_foli": "arc_foli",
-    "arc_hoja": "arc_hoja",
-    "arc_cari": "arc_cari",
-    "arc_medi": "arc_medi",
-    "arc_ubSe": "arc_ubsa",
-    "arc_ubEs": "arc_estan",
-    "arc_ubPa": "arc_pasi",
-    "arc_ubCa": "arc_casi",
-    "arc_obse": "arc_obse",
-    "arc_conA": "arc_conA",
-    "arc_conR": "arc_conR",
-    "arc_leng": "arc_leng",
-    "arc_lugD": "arc_lugD",
-    "arc_orco": "arc_orco",
-}
+# --------------------------
+# UBICACIÓN DEL DBF
+# --------------------------
 
-IGNORE_FIELDS = {
-    "arc_anod",
-    "arc_anoh",
-    "arc_meta",
-    "arc_obs2",
-    "arc_arch",
-    "arc_ima1",
-    "arc_ima2",
-    "arc_ima3",
-    "arc_ima4",
-    "arc_ima5",
-    "arc_ima6",
-}
-
-# =========================
-# FIX TEXTO (acentos / ñ / �)
-# =========================
-def fix_text(value):
-    if isinstance(value, bytes):
-        value = value.decode("latin1", errors="ignore")
-
-    if isinstance(value, str):
-        value = value.encode("latin1", errors="ignore").decode("utf-8", errors="ignore")
-
-        # arreglar caracter roto
-        value = value.replace("�", "Á")  # fallback general
-
-        # arreglos comunes DBF
-        value = (
-            value.replace("Ã¡", "á")
-                 .replace("Ã©", "é")
-                 .replace("Ã­", "í")
-                 .replace("Ã³", "ó")
-                 .replace("Ãº", "ú")
-                 .replace("Ã±", "ñ")
-                 .replace("Ã", "Ñ")
-        )
-
-    return value
-
-# =========================
-# BOOLEAN FIX
-# =========================
-def fix_bool(value):
-    if value in [1, "1", "S", "s", True, "T"]:
-        return True
-    return False
-
-# =========================
-# IMPORTACIÓN
-# =========================
-def importar():
-    table = DBF(
-    DBF_FILE,
-    encoding="latin1",
-    ignore_missing_memofile=True
+DBF_FILE = os.path.join(
+    os.path.dirname(__file__),
+    "dbf",
+    "arch.dbf"
 )
 
-    contador = 0
 
-    for row in table:
-        data = {}
+# --------------------------
+# CORREGIR CARACTERES
+# --------------------------
 
-        for dbf_field, value in row.items():
+REEMPLAZOS = {
+    "�": "Ó",
+    "�A": "Á",
+    "�E": "É",
+    "�I": "Í",
+    "�O": "Ó",
+    "�U": "Ú",
+    "�N": "Ñ",
+}
 
-            if dbf_field in IGNORE_FIELDS:
-                continue
 
-            if dbf_field not in FIELD_MAP:
-                continue
+def limpiar(valor):
 
-            django_field = FIELD_MAP[dbf_field]
+    if valor is None:
+        return None
 
-            # limpiar texto
-            value = fix_text(value)
+    valor = str(valor).strip()
 
-            # boolean especial
-            if dbf_field == "arc_orco":
-                value = fix_bool(value)
+    if valor == "":
+        return None
 
-            data[django_field] = value
+    try:
+        valor = valor.encode("latin1").decode("cp1252")
+    except:
+        pass
 
-        # =========================
-        # INSERT / UPDATE
-        # =========================
-        obj, created = RegistroHistorico.objects.update_or_create(
-            arc_codi=data.get("arc_codi"),
-            defaults=data
-        )
+    for viejo, nuevo in REEMPLAZOS.items():
+        valor = valor.replace(viejo, nuevo)
 
-        contador += 1
-        print(f"{'CREADO' if created else 'ACTUALIZADO'}: {obj.arc_codi}")
+    return valor
 
-    print(f"\n✔ Importación finalizada: {contador} registros")
 
-# =========================
-# RUN
-# =========================
-if __name__ == "__main__":
-    importar()
+# --------------------------
+# FECHAS
+# --------------------------
+
+def fecha(valor):
+
+    if valor in (None, "", "00000000"):
+        return None
+
+    if isinstance(valor, date):
+        return valor
+
+    return None
+
+
+# --------------------------
+# BOOLEANO
+# --------------------------
+
+def booleano(valor):
+
+    if valor is None:
+        return False
+
+    valor = str(valor).strip().upper()
+
+    return valor in (
+        "S",
+        "SI",
+        "Y",
+        "YES",
+        "1",
+        "T",
+        "TRUE",
+        "O",
+        "ORIGINAL",
+    )
+
+
+print("Leyendo DBF...")
+
+tabla = DBF(
+    DBF_FILE,
+    load=True,
+    char_decode_errors="ignore"
+)
+
+cantidad = 0
+
+for fila in tabla:
+
+    RegistroHistorico.objects.update_or_create(
+
+        arc_codi=fila["ARC_CODI"],
+
+        defaults={
+
+            "arc_titu": limpiar(fila["ARC_TITU"]),
+            "arc_desc": limpiar(fila["ARC_DESC"]),
+
+            "arc_orig": limpiar(fila["ARC_ORIC"]),
+            "arc_año": fila["ARC_ANO"],
+            "arc_npro": limpiar(fila["ARC_PROT"]),
+
+            # IMPORTANTE
+            "arc_fech": fecha(fila["ARC_FECR"]),
+            "arc_fechE": fecha(fila["ARC_FECH"]),
+
+            "arc_cate": limpiar(fila["ARC_CATE"]),
+            "arc_tema": limpiar(fila["ART_TEMA"]),
+            "arc_asun": limpiar(fila["ARC_ASUN"]),
+            "arc_inic": limpiar(fila["ARC_INIC"]),
+            "arc_dest": limpiar(fila["ARC_DEST"]),
+
+            "arc_grup": limpiar(fila["ARC_GRUP"]),
+            "arc_seri": limpiar(fila["ARC_GRUS"]),
+
+            "arc_sopo": limpiar(fila["ARC_MATE"]),
+            "arc_area": limpiar(fila["ARC_AREA"]),
+            "arc_esta": limpiar(fila["ARC_ESTA"]),
+
+            "arc_caja": limpiar(fila["ARC_CAJA"]),
+            "arc_lega": limpiar(fila["ARC_LEGA"]),
+            "arc_nume": limpiar(fila["ARC_NUME"]),
+            "arc_foli": limpiar(fila["ARC_FOLI"]),
+            "arc_hoja": limpiar(fila["ARC_HOJA"]),
+            "arc_cari": limpiar(fila["ARC_CARI"]),
+            "arc_medi": limpiar(fila["ARC_MEDI"]),
+
+            "arc_ubsa": limpiar(fila["ARC_UBSE"]),
+            "arc_estan": limpiar(fila["ARC_UBES"]),
+            "arc_pasi": limpiar(fila["ARC_UBPA"]),
+            "arc_casi": limpiar(fila["ARC_UBCA"]),
+
+            "arc_obse": limpiar(fila["ARC_OBSE"]),
+
+            "arc_conA": limpiar(fila["ARC_CONA"]),
+            "arc_conR": limpiar(fila["ARC_CONR"]),
+
+            "arc_leng": limpiar(fila["ARC_LENG"]),
+
+            "arc_lugD": limpiar(fila["ARC_LUGD"]),
+
+            "arc_orco": booleano(fila["ARC_ORCO"]),
+
+        },
+    )
+
+    cantidad += 1
+
+print(f"Se importaron {cantidad} registros correctamente.")
