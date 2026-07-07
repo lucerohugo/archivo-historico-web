@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Upload, X, FileText, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import { getRegistro, updateRegistro, uploadArchivo, deleteArchivo } from '@/lib/api';
+import { isAdmin } from '@/lib/auth';
 
 interface RegistroForm {
   arc_codi?: number;
@@ -82,6 +83,11 @@ function F({ label, children, wide }: { label: string; children: React.ReactNode
 export default function EditarRegistroPage() {
   const params = useParams();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isAdmin()) router.replace('/registrar');
+  }, [router]);
+
   const [tab, setTab] = useState<Tab>('datos');
   const goToTab = (t: Tab) => {
     setTab(t);

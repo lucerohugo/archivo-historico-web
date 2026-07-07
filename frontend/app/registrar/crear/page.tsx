@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Upload, X, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import { createRegistro, uploadArchivo } from '@/lib/api';
+import { isAdmin } from '@/lib/auth';
 
 type Tab = 'datos' | 'almacenamiento' | 'archivos';
 const TABS: { id: Tab; label: string }[] = [
@@ -81,6 +82,11 @@ function F({ label, children, wide }: { label: string; children: React.ReactNode
 
 export default function CrearRegistroPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isAdmin()) router.replace('/registrar');
+  }, [router]);
+
   const [tab, setTab] = useState<Tab>('datos');
   const goToTab = (t: Tab) => {
     setTab(t);

@@ -4,6 +4,8 @@
  * - Backend URL: http://localhost:8000/api (ajusta según tu setup)
  */
 
+import { getAccessToken } from './auth';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 /**
@@ -15,10 +17,12 @@ async function apiCall<T>(
 ): Promise<{ data?: T; error?: string; status?: number }> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
+    const token = getAccessToken();
     const response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options?.headers,
       },
     });
@@ -222,6 +226,7 @@ export async function deleteRegistro(id: number) {
 export interface AuthUsuarioDTO {
   id: number;
   log_usua: string;
+  log_rol: 'ADMIN' | 'CONSULTA';
 }
 
 export interface AuthResponseDTO {
@@ -253,9 +258,11 @@ async function apiUpload<T>(
 ): Promise<{ data?: T; error?: string; status?: number }> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
+    const token = getAccessToken();
     // No seteamos Content-Type: el navegador arma el boundary del multipart automáticamente
     const response = await fetch(url, {
       method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: formData,
     });
 

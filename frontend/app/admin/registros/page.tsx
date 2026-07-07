@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Search, Calendar, Trash2, Pencil, PlusCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import { getRegistros, deleteRegistro } from '@/lib/api';
+import { isAdmin } from '@/lib/auth';
 
 const PAGE_SIZE = 50;
 
@@ -121,10 +122,12 @@ export default function AdminRegistrosPage() {
               <h1 className="page-title">Todos los registros históricos</h1>
               <p className="page-subtitle">{count} registros en total — públicos y privados</p>
             </div>
-            <Link href="/registrar/crear" className="btn-primary">
-              <PlusCircle size={14} />
-              Nuevo registro
-            </Link>
+            {isAdmin() && (
+              <Link href="/registrar/crear" className="btn-primary">
+                <PlusCircle size={14} />
+                Nuevo registro
+              </Link>
+            )}
           </div>
         </div>
 
@@ -206,13 +209,13 @@ export default function AdminRegistrosPage() {
                         </button>
                       </th>
                       <th>Archivos</th>
-                      <th>Acciones</th>
+                      {isAdmin() && <th>Acciones</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {registros.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-10 text-center text-sm text-slate-400">
+                        <td colSpan={isAdmin() ? 7 : 6} className="py-10 text-center text-sm text-slate-400">
                           No se encontraron registros.
                         </td>
                       </tr>
@@ -256,39 +259,41 @@ export default function AdminRegistrosPage() {
                             )}
                           </td>
 
-                          <td>
-                            <div className="flex items-center gap-1.5">
-                              <Link href={`/registrar/editar/${r.arc_codi}`} className="btn-edit no-underline">
-                                <Pencil size={11} />
-                                Editar
-                              </Link>
+                          {isAdmin() && (
+                            <td>
+                              <div className="flex items-center gap-1.5">
+                                <Link href={`/registrar/editar/${r.arc_codi}`} className="btn-edit no-underline">
+                                  <Pencil size={11} />
+                                  Editar
+                                </Link>
 
-                              {deleteConfirm === r.arc_codi ? (
-                                <div className="flex items-center gap-1">
+                                {deleteConfirm === r.arc_codi ? (
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      className="btn-danger text-[10px] px-2 py-1"
+                                      onClick={() => handleDelete(r.arc_codi)}
+                                    >
+                                      Confirmar
+                                    </button>
+                                    <button
+                                      className="btn-secondary text-[10px] px-2 py-1"
+                                      onClick={() => setDeleteConfirm(null)}
+                                    >
+                                      Cancelar
+                                    </button>
+                                  </div>
+                                ) : (
                                   <button
-                                    className="btn-danger text-[10px] px-2 py-1"
-                                    onClick={() => handleDelete(r.arc_codi)}
+                                    className="btn-danger"
+                                    onClick={() => setDeleteConfirm(r.arc_codi)}
                                   >
-                                    Confirmar
+                                    <Trash2 size={11} />
+                                    Borrar
                                   </button>
-                                  <button
-                                    className="btn-secondary text-[10px] px-2 py-1"
-                                    onClick={() => setDeleteConfirm(null)}
-                                  >
-                                    Cancelar
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  className="btn-danger"
-                                  onClick={() => setDeleteConfirm(r.arc_codi)}
-                                >
-                                  <Trash2 size={11} />
-                                  Borrar
-                                </button>
-                              )}
-                            </div>
-                          </td>
+                                )}
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))
                     )}

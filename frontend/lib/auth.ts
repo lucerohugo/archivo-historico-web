@@ -14,6 +14,7 @@ const REFRESH_KEY = 'archivo_refresh';
 export interface AuthUser {
   id: number;
   username: string;
+  role: 'ADMIN' | 'CONSULTA';
 }
 
 /**
@@ -21,7 +22,10 @@ export interface AuthUser {
  */
 export function setSession(usuario: AuthUsuarioDTO, access: string, refresh: string): void {
   localStorage.setItem(AUTH_KEY, 'true');
-  localStorage.setItem(USER_KEY, JSON.stringify({ id: usuario.id, username: usuario.log_usua }));
+  localStorage.setItem(
+    USER_KEY,
+    JSON.stringify({ id: usuario.id, username: usuario.log_usua, role: usuario.log_rol })
+  );
   localStorage.setItem(ACCESS_KEY, access);
   localStorage.setItem(REFRESH_KEY, refresh);
 }
@@ -49,6 +53,13 @@ export function getCurrentUser(): AuthUser | null {
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem(ACCESS_KEY);
+}
+
+/**
+ * Verificar si el usuario logueado tiene rol ADMIN (acceso total)
+ */
+export function isAdmin(): boolean {
+  return getCurrentUser()?.role === 'ADMIN';
 }
 
 /**

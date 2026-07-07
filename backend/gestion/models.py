@@ -257,6 +257,17 @@ class ArchivoAdjunto(models.Model):
 # ================================================================
 class Login(models.Model):
     """Modelo personalizado para autenticación de usuarios"""
+
+    ADMIN = "ADMIN"
+    CONSULTA = "CONSULTA"
+    ROLES = [
+        (ADMIN, "Administrador"),
+        (CONSULTA, "Consulta"),
+    ]
+
+    # Requerido por DRF para el duck-typing de request.user en las permission classes
+    is_authenticated = True
+
     log_codi = models.AutoField(primary_key=True)
     log_usua = models.CharField(
         max_length=50,
@@ -266,6 +277,12 @@ class Login(models.Model):
     log_clav = models.CharField(
         max_length=255,
         verbose_name="Contraseña"
+    )
+    log_rol = models.CharField(
+        max_length=20,
+        choices=ROLES,
+        default=CONSULTA,
+        verbose_name="Rol"
     )
     log_acti = models.BooleanField(
         default=True,
@@ -279,19 +296,23 @@ class Login(models.Model):
         auto_now=True,
         verbose_name="Fecha de modificación"
     )
-    
+
     class Meta:
         verbose_name = "Usuario del Archivo"
         verbose_name_plural = "Usuarios del Archivo"
         ordering = ['-log_fech']
-    
+
     def __str__(self):
-        return self.log_usua
-    
+        return f"{self.log_usua} ({self.get_log_rol_display()})"
+
     def set_password(self, raw_password):
         """Hashea y almacena la contraseña"""
         self.log_clav = make_password(raw_password)
-    
+
     def check_password(self, raw_password):
         """Verifica la contraseña contra el hash almacenado"""
         return check_password(raw_password, self.log_clav)
+
+    @property
+    def es_admin(self):
+        return self.log_rol == self.ADMIN

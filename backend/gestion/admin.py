@@ -147,13 +147,13 @@ class ArchivoAdjuntoAdmin(admin.ModelAdmin):
 
 @admin.register(Login)
 class LoginAdmin(admin.ModelAdmin):
-    list_display = ['log_codi', 'log_usua', 'log_acti', 'log_fech']
-    list_filter = ['log_acti', 'log_fech']
+    list_display = ['log_codi', 'log_usua', 'log_rol', 'log_acti', 'log_fech']
+    list_filter = ['log_rol', 'log_acti', 'log_fech']
     search_fields = ['log_usua', 'log_codi']
     readonly_fields = ['log_codi', 'log_fech', 'log_fechm']
     fieldsets = (
         ('Información de Usuario', {
-            'fields': ('log_codi', 'log_usua', 'log_clav')
+            'fields': ('log_codi', 'log_usua', 'log_clav', 'log_rol')
         }),
         ('Estado', {
             'fields': ('log_acti',)

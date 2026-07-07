@@ -14,6 +14,7 @@ class Command(BaseCommand):
         usuario = Login.objects.create(
             log_usua='hugo',
             log_clav=make_password('hugo123'),
+            log_rol=Login.ADMIN,
             log_acti=True
         )
         

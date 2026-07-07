@@ -77,7 +77,7 @@ class LoginSerializer(serializers.ModelSerializer):
     """Serializer para el modelo Login"""
     class Meta:
         model = Login
-        fields = ('log_codi', 'log_usua', 'log_acti', 'log_fech')
+        fields = ('log_codi', 'log_usua', 'log_rol', 'log_acti', 'log_fech')
         read_only_fields = ('log_codi', 'log_fech')
 
 

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { PlusCircle, List, BookOpen, Archive, FileText } from 'lucide-react';
 import AppHeader from '@/components/AppHeader';
 import { getRegistros, getRegistrosStats } from '@/lib/api';
+import { isAdmin } from '@/lib/auth';
 
 interface Registro {
   arc_codi: number;
@@ -72,18 +73,20 @@ export default function RegistrarPage() {
         </div>
 
         {/* Actions */}
-        <div className="mb-8 grid grid-cols-2 gap-4">
-          <Link href="/registrar/crear" className="no-underline">
-            <div className="flex items-center gap-4 rounded-xl bg-sky-800 p-7 shadow-sm transition-all hover:bg-sky-700 hover:shadow-md cursor-pointer">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                <PlusCircle size={22} className="text-white" />
+        <div className={`mb-8 grid gap-4 ${isAdmin() ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {isAdmin() && (
+            <Link href="/registrar/crear" className="no-underline">
+              <div className="flex items-center gap-4 rounded-xl bg-sky-800 p-7 shadow-sm transition-all hover:bg-sky-700 hover:shadow-md cursor-pointer">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
+                  <PlusCircle size={22} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-base font-semibold text-white">Cargar nuevo archivo</p>
+                  <p className="mt-0.5 text-xs text-sky-200">Crear un nuevo registro histórico</p>
+                </div>
               </div>
-              <div>
-                <p className="text-base font-semibold text-white">Cargar nuevo archivo</p>
-                <p className="mt-0.5 text-xs text-sky-200">Crear un nuevo registro histórico</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          )}
 
           <Link href="/admin/registros" className="no-underline">
             <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:border-sky-200 hover:shadow-md cursor-pointer">
@@ -130,9 +133,13 @@ export default function RegistrarPage() {
                   recent.map((r) => (
                     <tr key={r.arc_codi}>
                       <td>
-                        <Link href={`/registrar/editar/${r.arc_codi}`} className="font-semibold text-sky-700 no-underline hover:text-sky-800">
-                          {r.arc_codi}
-                        </Link>
+                        {isAdmin() ? (
+                          <Link href={`/registrar/editar/${r.arc_codi}`} className="font-semibold text-sky-700 no-underline hover:text-sky-800">
+                            {r.arc_codi}
+                          </Link>
+                        ) : (
+                          <span className="font-semibold text-slate-700">{r.arc_codi}</span>
+                        )}
                       </td>
                       <td className="whitespace-nowrap text-xs text-slate-500">{r.arc_fech}</td>
                       <td className="max-w-xs">

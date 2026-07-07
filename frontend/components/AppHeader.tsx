@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { LogOut, ChevronRight } from 'lucide-react';
+import { isAdmin } from '@/lib/auth';
 
 interface Crumb {
   label: string;
@@ -68,12 +69,14 @@ export default function AppHeader({ showAdminNav, breadcrumb }: AppHeaderProps) 
               >
                 Todos los registros
               </Link> */}
-              <Link
-                href="/registrar/crear"
-                className="rounded-md bg-sky-800 px-4 py-1.5 text-xs font-semibold text-white no-underline transition-colors hover:bg-sky-700"
-              >
-                + Nuevo registro
-              </Link>
+              {isAdmin() && (
+                <Link
+                  href="/registrar/crear"
+                  className="rounded-md bg-sky-800 px-4 py-1.5 text-xs font-semibold text-white no-underline transition-colors hover:bg-sky-700"
+                >
+                  + Nuevo registro
+                </Link>
+              )}
             </nav>
             <div className="h-5 w-px bg-slate-200" />
             <Link

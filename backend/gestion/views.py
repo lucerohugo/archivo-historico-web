@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Localidad, Provincia, General, Parroquia, Sacerdote, RegistroHistorico, ArchivoAdjunto, Login
 from .filters import RegistroHistoricoFilter
+from .permissions import IsAdmin
 from .serializers import (
     LocalidadSerializer, ProvinciaSerializer, GeneralSerializer,
     ParroquiaSerializer, SacerdoteSerializer, RegistroHistoricoSerializer, ArchivoAdjuntoSerializer,
@@ -45,6 +46,7 @@ class LoginView(APIView):
                 'usuario': {
                     'id': usuario.log_codi,
                     'log_usua': usuario.log_usua,
+                    'log_rol': usuario.log_rol,
                 }
             }, status=status.HTTP_200_OK)
         
@@ -167,12 +169,17 @@ class RegistroHistoricoViewSet(viewsets.ModelViewSet):
     Usuarios autenticados ven todos los registros.
     """
     serializer_class = RegistroHistoricoSerializer
-    permission_classes = [permissions.AllowAny]  # Temporarily AllowAny - PHASE 5
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['arc_codi', 'arc_titu', 'arc_año']
     filterset_class = RegistroHistoricoFilter
     ordering_fields = ['arc_fech', 'arc_año', 'arc_fechr', 'arc_codi', 'arc_visw']
     ordering = ['-arc_fech']
+
+    def get_permissions(self):
+        """Lectura: cualquier usuario autenticado. Crear/editar/borrar: solo rol ADMIN."""
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+            return [IsAdmin()]
+        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         """Todos los registros para usuarios autenticados, con archivos precargados"""
@@ -248,7 +255,12 @@ class SacerdoteViewSet(viewsets.ModelViewSet):
 class ArchivoAdjuntoViewSet(viewsets.ModelViewSet):
     queryset = ArchivoAdjunto.objects.all()
     serializer_class = ArchivoAdjuntoSerializer
-    permission_classes = [permissions.AllowAny]  # Temporarily AllowAny - PHASE 5
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['registro', 'tipo']
     search_fields = ['nombre', 'descripcion']
+
+    def get_permissions(self):
+        """Lectura: cualquier usuario autenticado. Crear/editar/borrar: solo rol ADMIN."""
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+            return [IsAdmin()]
+        return [permissions.IsAuthenticated()]
