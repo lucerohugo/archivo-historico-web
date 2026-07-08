@@ -17,7 +17,11 @@ async function apiCall<T>(
 ): Promise<{ data?: T; error?: string; status?: number }> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    const token = getAccessToken();
+    // /public/* y /auth/* son anónimos: nunca deben mandar el token guardado,
+    // aunque exista uno viejo/inválido en localStorage (si no, la autenticación
+    // JWT falla ANTES de llegar al permiso AllowAny y rompe login/catálogo público)
+    const skipAuth = endpoint.startsWith('/public/') || endpoint.startsWith('/auth/');
+    const token = skipAuth ? null : getAccessToken();
     const response = await fetch(url, {
       ...options,
       headers: {

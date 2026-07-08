@@ -95,7 +95,7 @@ export default function RegistrarPage() {
               </div>
               <div>
                 <p className="text-base font-semibold text-slate-900">Todos los registros</p>
-                <p className="mt-0.5 text-xs text-slate-500">Gestionar registros editar o borrar</p>
+                <p className="mt-0.5 text-xs text-slate-500">Gestionar registros</p>
               </div>
             </div>
           </Link>
