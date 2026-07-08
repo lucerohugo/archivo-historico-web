@@ -53,6 +53,10 @@ def limpiar(valor):
     for viejo, nuevo in REEMPLAZOS.items():
         valor = valor.replace(viejo, nuevo)
 
+    # Convierte todo a MAYÚSCULAS incluyendo acentos y Ñ
+    valor = valor.upper()
+   
+
     return valor
 
 
@@ -66,6 +70,16 @@ def fecha(valor):
         return None
 
     if isinstance(valor, date):
+        # Si el día interpretado puede ser un mes,
+        # invertimos día y mes.
+        if valor.day <= 12:
+            return date(
+                valor.year,
+                valor.day,
+                valor.month
+            )
+
+        # Si no, la fecha ya está correcta
         return valor
 
     return None
@@ -100,6 +114,7 @@ print("Leyendo DBF...")
 tabla = DBF(
     DBF_FILE,
     load=True,
+    encoding='cp850',
     char_decode_errors="ignore"
 )
 
