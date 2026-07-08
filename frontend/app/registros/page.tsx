@@ -120,7 +120,8 @@ export default function RegistrosPage() {
                 />
               </div>
             </div>
-            <div className="min-w-[140px]">
+            {/* filtros comentados 8/7/2026 */}
+            {/* <div className="min-w-[140px]">
               <label className="filter-label">Fecha desde</label>
               <input className="form-input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
             </div>
@@ -134,7 +135,7 @@ export default function RegistrosPage() {
                 <option value="">Todas las categorías</option>
                 {categorias.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
-            </div>
+            </div> */}
             {hasFilters && (
               <button onClick={clearFilters} className="btn-secondary">
                 Limpiar
