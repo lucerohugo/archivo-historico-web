@@ -128,7 +128,7 @@ export default function HomePage() {
             height={20}
           />
           <small className="text-[9px] text-slate-500 font-medium">
-            BrixSoftware — HL
+            BrixSoftware
           </small>
   </div>
 </footer>
