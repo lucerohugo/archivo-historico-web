@@ -9,7 +9,8 @@ from django.conf.urls.static import static
 # from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView  # Temporarily disabled - PHASE 5
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # 'django-admin/' y no 'admin/': el frontend usa /admin/* para sus propias páginas
+    path('django-admin/', admin.site.urls),
     # JWT endpoints temporarily disabled - PHASE 5
     # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
