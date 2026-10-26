@@ -4,7 +4,8 @@ from .views import (
     LocalidadViewSet, ProvinciaViewSet, GeneralViewSet,
     ParroquiaViewSet, SacerdoteViewSet, RegistroHistoricoViewSet, ArchivoAdjuntoViewSet,
     PublicRegistroHistoricoViewSet,
-    LoginView, RegisterView, RefreshTokenView, LogoutView
+    LoginView, RegisterView, RefreshTokenView, LogoutView,
+    ver_archivo,
 )
 
 # Router para API privada
@@ -22,6 +23,9 @@ public_router = DefaultRouter()
 public_router.register(r'registros', PublicRegistroHistoricoViewSet, basename='public-registro')
 
 urlpatterns = [
+    # Descarga de adjuntos con control de acceso (antes que el router)
+    path('archivos/<int:pk>/ver/', ver_archivo, name='archivo-ver'),
+
     # API privada
     path('', include(router.urls)),
     

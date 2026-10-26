@@ -31,11 +31,32 @@ export function setSession(usuario: AuthUsuarioDTO, access: string, refresh: str
 }
 
 /**
- * Verificar si el usuario tiene una sesión activa
+ * Verificar si un token JWT ya venció (o vence en los próximos `marginSeconds`).
+ * Solo evita mostrar el panel con una sesión vieja: la validación real la hace el backend.
+ */
+export function isTokenExpired(token: string, marginSeconds = 0): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof payload.exp !== 'number' || payload.exp * 1000 <= Date.now() + marginSeconds * 1000;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Verificar si el usuario tiene una sesión activa: access vigente, o refresh vigente
+ * para renovarlo (la renovación la hace lib/api.ts en la próxima llamada)
  */
 export function isLoggedIn(): boolean {
   if (typeof window === 'undefined') return false;
-  return localStorage.getItem(AUTH_KEY) === 'true' && !!localStorage.getItem(ACCESS_KEY);
+  const access = localStorage.getItem(ACCESS_KEY);
+  const refresh = localStorage.getItem(REFRESH_KEY);
+  const vigente = (!!access && !isTokenExpired(access)) || (!!refresh && !isTokenExpired(refresh));
+  if (localStorage.getItem(AUTH_KEY) !== 'true' || !vigente) {
+    logout();
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -56,6 +77,22 @@ export function getAccessToken(): string | null {
 }
 
 /**
+ * Obtener el refresh token (sirve para renovar el access sin volver a loguearse)
+ */
+export function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(REFRESH_KEY);
+}
+
+/**
+ * Guardar los tokens nuevos luego de renovar la sesión
+ */
+export function setTokens(access: string, refresh: string): void {
+  localStorage.setItem(ACCESS_KEY, access);
+  localStorage.setItem(REFRESH_KEY, refresh);
+}
+
+/**
  * Verificar si el usuario logueado tiene rol ADMIN (acceso total)
  */
 export function isAdmin(): boolean {
@@ -71,4 +108,14 @@ export function logout(): void {
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);
+}
+
+/**
+ * Sesión rechazada por el backend (token vencido, usuario desactivado):
+ * limpiar y mandar al login
+ */
+export function handleUnauthorized(): void {
+  if (typeof window === 'undefined') return;
+  logout();
+  window.location.replace('/login');
 }

@@ -5,10 +5,15 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY:?Definí SECRET_KEY}
       DEBUG: "False"
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
-      CORS_ALLOWED_ORIGINS: ${PUBLIC_URL:-http://localhost}
-      CSRF_TRUSTED_ORIGINS: ${PUBLIC_URL:-http://localhost}
+      # Dominios a los que responde Django (el resto recibe 400)
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-obispadoriocuarto.online,www.obispadoriocuarto.online,localhost,127.0.0.1}
+      CORS_ALLOWED_ORIGINS: ${PUBLIC_URL:-https://obispadoriocuarto.online}
+      CSRF_TRUSTED_ORIGINS: ${PUBLIC_URL:-https://obispadoriocuarto.online}
       SQLITE_PATH: /app/data/db.sqlite3
+      # Proxies delante de Django: CloudPanel + nginx del stack (IP real para el límite de logins)
+      NUM_PROXIES: ${NUM_PROXIES:-2}
+      # Los adjuntos los entrega nginx solo después de que Django autoriza
+      MEDIA_X_ACCEL: "True"
     volumes:
       - db_data:/app/data
       - media_data:/app/media

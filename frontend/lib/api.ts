@@ -4,9 +4,79 @@
  * - Backend URL: http://localhost:8000/api (ajusta según tu setup)
  */
 
-import { getAccessToken } from './auth';
+import {
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+  isTokenExpired,
+  handleUnauthorized,
+} from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+
+// Renovación en curso: si varias llamadas la necesitan a la vez, comparten una sola petición
+let refreshing: Promise<string | null> | null = null;
+
+/**
+ * Renovar la sesión con el refresh token. Devuelve el access nuevo o null si no se pudo.
+ */
+function refreshAccessToken(): Promise<string | null> {
+  if (!refreshing) {
+    refreshing = (async () => {
+      const refresh = getRefreshToken();
+      if (!refresh || isTokenExpired(refresh)) return null;
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh }),
+        });
+        if (!response.ok) return null;
+        const data: { access: string; refresh: string } = await response.json();
+        setTokens(data.access, data.refresh);
+        return data.access;
+      } catch {
+        return null;
+      }
+    })().finally(() => {
+      refreshing = null;
+    });
+  }
+  return refreshing;
+}
+
+/**
+ * Access token vigente, renovándolo antes si vence en menos de un minuto
+ */
+async function getValidAccessToken(): Promise<string | null> {
+  const token = getAccessToken();
+  if (token && !isTokenExpired(token, 60)) return token;
+  return refreshAccessToken();
+}
+
+/**
+ * fetch autenticado: manda el JWT (renovándolo si hace falta) y, si el backend
+ * lo rechaza, intenta renovar una vez más. Si la sesión ya no sirve, manda al login.
+ */
+async function authFetch(url: string, init: RequestInit = {}): Promise<Response> {
+  const withToken = (token: string | null): RequestInit => ({
+    ...init,
+    headers: {
+      ...(init.headers as Record<string, string> | undefined),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  let token = await getValidAccessToken();
+  let response = await fetch(url, withToken(token));
+
+  if (response.status === 401) {
+    token = await refreshAccessToken();
+    if (token) response = await fetch(url, withToken(token));
+    if (response.status === 401) handleUnauthorized();
+  }
+  return response;
+}
 
 /**
  * Hacer fetch a la API con manejo de errores
@@ -21,15 +91,14 @@ async function apiCall<T>(
     // aunque exista uno viejo/inválido en localStorage (si no, la autenticación
     // JWT falla ANTES de llegar al permiso AllowAny y rompe login/catálogo público)
     const skipAuth = endpoint.startsWith('/public/') || endpoint.startsWith('/auth/');
-    const token = skipAuth ? null : getAccessToken();
-    const response = await fetch(url, {
+    const init: RequestInit = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options?.headers,
       },
-    });
+    };
+    const response = skipAuth ? await fetch(url, init) : await authFetch(url, init);
 
     // Si no es 2xx
     if (!response.ok) {
@@ -262,11 +331,9 @@ async function apiUpload<T>(
 ): Promise<{ data?: T; error?: string; status?: number }> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    const token = getAccessToken();
     // No seteamos Content-Type: el navegador arma el boundary del multipart automáticamente
-    const response = await fetch(url, {
+    const response = await authFetch(url, {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: formData,
     });
 

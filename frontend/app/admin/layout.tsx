@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isLoggedIn()) {
       setAuthorized(true);
     } else {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [router]);
 

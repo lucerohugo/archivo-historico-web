@@ -98,6 +98,17 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Adjuntos: no se sirven desde /media/ sino por gestion.views.ver_archivo.
+# Validez de los links firmados que habilitan adjuntos de registros privados.
+ARCHIVO_URL_MAX_AGE = 60 * 60 * 4
+# En producción nginx entrega el archivo (X-Accel-Redirect) después de que Django autoriza
+MEDIA_X_ACCEL = os.getenv('MEDIA_X_ACCEL', 'False') == 'True'
+
+# HTTPS: el sitio está detrás de proxies (CloudPanel -> nginx) que terminan el SSL
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -106,9 +117,20 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'gestion.authentication.LoginJWTAuthentication',
     ],
+    # Cerrado por defecto: cada vista pública declara AllowAny explícitamente
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Temporarily AllowAny - PHASE 5
+        'rest_framework.permissions.IsAuthenticated',
     ],
+    # Limita intentos de login (fuerza bruta). Solo aplica a vistas con throttle_scope.
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '10/min',
+        'refresh': '30/min',
+    },
+    # Detrás de nginx: tomar la IP real del cliente desde X-Forwarded-For
+    'NUM_PROXIES': int(os.getenv('NUM_PROXIES')) if os.getenv('NUM_PROXIES') else None,
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.SearchFilter',

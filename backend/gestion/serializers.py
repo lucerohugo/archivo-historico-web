@@ -1,5 +1,10 @@
+from django.core import signing
+from django.urls import reverse
 from rest_framework import serializers
 from .models import Localidad, Provincia, General, Parroquia, Sacerdote, RegistroHistorico, ArchivoAdjunto, Login
+
+# Firma de los links a adjuntos (ver ArchivoAdjuntoSerializer y views.ver_archivo)
+ARCHIVO_SIGNING_SALT = 'gestion.archivo-adjunto'
 
 
 class LocalidadSerializer(serializers.ModelSerializer):
@@ -45,6 +50,20 @@ class ArchivoAdjuntoSerializer(serializers.ModelSerializer):
         model = ArchivoAdjunto
         fields = '__all__'
         read_only_fields = ('fecha_carga',)
+
+    def to_representation(self, instance):
+        """
+        'archivo' nunca expone la ruta real en /media/: apunta a la vista ver_archivo,
+        que controla el acceso. Solo a usuarios logueados se les agrega el token firmado
+        que habilita abrir adjuntos de registros privados.
+        """
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        url = reverse('archivo-ver', args=[instance.pk])
+        if request is not None and getattr(request.user, 'is_authenticated', False):
+            url += '?t=' + signing.dumps(instance.pk, salt=ARCHIVO_SIGNING_SALT)
+        data['archivo'] = request.build_absolute_uri(url) if request is not None else url
+        return data
 
 
 class RegistroHistoricoSerializer(serializers.ModelSerializer):
