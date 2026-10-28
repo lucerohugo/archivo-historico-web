@@ -166,7 +166,7 @@ class PublicRegistroHistoricoViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = RegistroHistoricoSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['arc_titu', 'arc_año']
+    search_fields = ['arc_titu', 'arc_año', 'arc_pcla']
     filterset_class = RegistroHistoricoFilter
     ordering_fields = ['arc_fech', 'arc_año', 'arc_codi']
     ordering = ['-arc_fech']
@@ -202,7 +202,7 @@ class RegistroHistoricoViewSet(AdminWriteMixin, viewsets.ModelViewSet):
     """
     serializer_class = RegistroHistoricoSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['arc_codi', 'arc_titu', 'arc_año']
+    search_fields = ['arc_codi', 'arc_titu', 'arc_año', 'arc_pcla']
     filterset_class = RegistroHistoricoFilter
     ordering_fields = ['arc_fech', 'arc_año', 'arc_fechr', 'arc_codi', 'arc_visw']
     ordering = ['-arc_fech']

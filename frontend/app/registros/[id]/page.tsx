@@ -18,11 +18,14 @@ interface Registro {
   arc_npro?: string;
   arc_fechE?: string;
   arc_seg?: string;
+  arc_fini?: string;
+  arc_ffin?: string;
   arc_tema?: string;
   arc_area?: string;
   arc_asun?: string;
   arc_inic?: string;
   arc_dest?: string;
+  arc_pcla?: string;
   arc_sopo?: string;
   arc_esta?: string;
   arc_leng?: string;
@@ -172,6 +175,8 @@ export default function RegistroDetailPage() {
                   <Field label="N° Protocolar" value={registro.arc_npro} />
                   <Field label="Fecha exacta" value={registro.arc_fechE} />
                   <Field label="Segmento" value={registro.arc_seg} />
+                  <Field label="Fecha inicial" value={registro.arc_fini} />
+                  <Field label="Fecha final" value={registro.arc_ffin} />
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-5">
                   <Field label="Fecha de recepción" value={registro.arc_fech} />
@@ -182,6 +187,7 @@ export default function RegistroDetailPage() {
                   {registro.arc_asun && <div className="col-span-2"><Field label="Asunto" value={registro.arc_asun} /></div>}
                   {registro.arc_inic && <Field label="Iniciador" value={registro.arc_inic} />}
                   {registro.arc_dest && <Field label="Destinatarios" value={registro.arc_dest} />}
+                  {registro.arc_pcla && <div className="col-span-2"><Field label="Palabras clave" value={registro.arc_pcla} /></div>}
                 </div>
               </div>
             </div>

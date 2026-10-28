@@ -32,11 +32,14 @@ const INIT = {
   arc_npro: '',
   arc_fechE: '',
   arc_seg: '',
+  arc_fini: '',
+  arc_ffin: '',
   arc_tema: '',
   arc_area: '',
   arc_asun: '',
   arc_inic: '',
   arc_dest: '',
+  arc_pcla: '',
   arc_visw: 'publico' as 'publico' | 'privado',
   arc_grup: '',
   arc_seri: '',
@@ -129,12 +132,16 @@ export default function CrearRegistroPage() {
           arc_cate: form.arc_cate,
           arc_año: form.arc_año ? parseInt(form.arc_año) : null,
           arc_npro: form.arc_npro,
+          arc_fechE: form.arc_fechE || null,
           arc_seg: form.arc_seg,
+          arc_fini: form.arc_fini,
+          arc_ffin: form.arc_ffin,
           arc_tema: form.arc_tema,
           arc_area: form.arc_area,
           arc_asun: form.arc_asun,
           arc_inic: form.arc_inic,
           arc_dest: form.arc_dest,
+          arc_pcla: form.arc_pcla,
           arc_grup: form.arc_grup,
           arc_seri: form.arc_seri,
           arc_sser: form.arc_sser,
@@ -265,6 +272,15 @@ export default function CrearRegistroPage() {
                     {SEGMENTOS.map((v) => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </F>
+                <F label="Fecha exacta">
+                  <input className="form-input" type="date" value={form.arc_fechE} onChange={(e) => s('arc_fechE', e.target.value)} />
+                </F>
+                <F label="Fecha inicial">
+                  <input className="form-input" type="text" value={form.arc_fini} onChange={(e) => s('arc_fini', e.target.value)} placeholder="Ej: 1880 o 12/03/1880" />
+                </F>
+                <F label="Fecha final">
+                  <input className="form-input" type="text" value={form.arc_ffin} onChange={(e) => s('arc_ffin', e.target.value)} placeholder="Ej: 1885 o 30/11/1885" />
+                </F>
               </div>
             </Card>
 
@@ -275,6 +291,7 @@ export default function CrearRegistroPage() {
                 <F label="Asunto" wide><input className="form-input" type="text" value={form.arc_asun} onChange={(e) => s('arc_asun', e.target.value)} /></F>
                 <F label="Iniciador"><input className="form-input" type="text" value={form.arc_inic} onChange={(e) => s('arc_inic', e.target.value)} /></F>
                 <F label="Destinatarios"><input className="form-input" type="text" value={form.arc_dest} onChange={(e) => s('arc_dest', e.target.value)} /></F>
+                <F label="Palabras clave" wide><input className="form-input" type="text" value={form.arc_pcla} onChange={(e) => s('arc_pcla', e.target.value)} placeholder="Separadas por coma" /></F>
               </div>
             </Card>
 

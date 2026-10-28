@@ -76,7 +76,7 @@ class SacerdoteAdmin(admin.ModelAdmin):
 class RegistroHistoricoAdmin(admin.ModelAdmin):
     list_display = ['arc_codi', 'arc_titu', 'arc_fech', 'arc_año', 'arc_visw','arc_fechE', 'arc_acti']
     list_filter = ['arc_acti', 'arc_visw', 'arc_año', 'arc_cate', 'arc_tema', 'arc_orig']
-    search_fields = ['arc_codi', 'arc_titu', 'arc_desc', 'arc_asun']
+    search_fields = ['arc_codi', 'arc_titu', 'arc_desc', 'arc_asun', 'arc_pcla']
     readonly_fields = ['arc_codi', 'arc_fechr', 'arc_fechm']
     date_hierarchy = 'arc_fech'
     
@@ -88,10 +88,10 @@ class RegistroHistoricoAdmin(admin.ModelAdmin):
             'fields': ('arc_orig', 'arc_cate')
         }),
         ('Numeración y Fechas', {
-            'fields': ('arc_año', 'arc_npro','arc_fechE', 'arc_seg')
+            'fields': ('arc_año', 'arc_npro','arc_fechE', 'arc_fini', 'arc_ffin', 'arc_seg')
         }),
         ('Asunto y Alcances', {
-            'fields': ('arc_tema', 'arc_area', 'arc_asun', 'arc_inic', 'arc_dest')
+            'fields': ('arc_tema', 'arc_area', 'arc_asun', 'arc_inic', 'arc_dest', 'arc_pcla')
         }),
         ('Grupos y Series', {
             'fields': ('arc_grup', 'arc_seri', 'arc_sser')

@@ -113,6 +113,9 @@ class RegistroHistorico(models.Model):
     arc_npro = models.CharField(max_length=50, verbose_name="Número Protocolar", blank=True, null=True)
     arc_fechE = models.DateField(verbose_name="Fecha Exacta", null=True)
     arc_seg = models.CharField(max_length=50, verbose_name="Segmento", blank=True, null=True)
+    # Fechas extremas: texto libre porque suelen ser parciales ("1880", "a 1885")
+    arc_fini = models.CharField(max_length=50, verbose_name="Fecha Inicial", blank=True, null=True)
+    arc_ffin = models.CharField(max_length=50, verbose_name="Fecha Final", blank=True, null=True)
     
     # Asunto y alcances
     arc_tema = models.CharField(max_length=100, verbose_name="Tema", blank=True, null=True)
@@ -120,6 +123,7 @@ class RegistroHistorico(models.Model):
     arc_asun = models.CharField(max_length=255, verbose_name="Asunto", blank=True, null=True)
     arc_inic = models.CharField(max_length=255, verbose_name="Iniciador", blank=True, null=True)
     arc_dest = models.CharField(max_length=255, verbose_name="Destinatario", blank=True, null=True)
+    arc_pcla = models.TextField(verbose_name="Palabras Clave", blank=True, null=True, help_text="Separadas por coma")
     
     # Grupos y series
     arc_grup = models.CharField(max_length=100, verbose_name="Grupo", blank=True, null=True)

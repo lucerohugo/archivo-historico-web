@@ -138,11 +138,14 @@ export interface RegistroHistoricoDTO {
   arc_npro?: string; // Número protocolar
   arc_fechE?: string | null; // Fecha exacta
   arc_seg?: string; // Segmento
+  arc_fini?: string; // Fecha inicial
+  arc_ffin?: string; // Fecha final
   arc_tema?: string; // Tema
   arc_area?: string; // Área
   arc_asun?: string; // Asunto
   arc_inic?: string; // Iniciador
   arc_dest?: string; // Destinatario
+  arc_pcla?: string; // Palabras clave
   arc_grup?: string; // Grupo
   arc_seri?: string; // Serie
   arc_sser?: string; // Subserie

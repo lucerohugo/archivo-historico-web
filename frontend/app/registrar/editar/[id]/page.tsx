@@ -19,11 +19,14 @@ interface RegistroForm {
   arc_npro: string;
   arc_fechE: string;
   arc_seg: string;
+  arc_fini: string;
+  arc_ffin: string;
   arc_tema: string;
   arc_area: string;
   arc_asun: string;
   arc_inic: string;
   arc_dest: string;
+  arc_pcla: string;
   arc_visw: 'publico' | 'privado';
   arc_grup: string;
   arc_seri: string;
@@ -127,11 +130,14 @@ export default function EditarRegistroPage() {
           arc_npro: registroData.arc_npro || '',
           arc_fechE: registroData.arc_fechE || '',
           arc_seg: registroData.arc_seg || '',
+          arc_fini: registroData.arc_fini || '',
+          arc_ffin: registroData.arc_ffin || '',
           arc_tema: registroData.arc_tema || '',
           arc_area: registroData.arc_area || '',
           arc_asun: registroData.arc_asun || '',
           arc_inic: registroData.arc_inic || '',
           arc_dest: registroData.arc_dest || '',
+          arc_pcla: registroData.arc_pcla || '',
           arc_visw: registroData.arc_visw ? 'publico' : 'privado',
           arc_grup: registroData.arc_grup || '',
           arc_seri: registroData.arc_seri || '',
@@ -206,11 +212,14 @@ export default function EditarRegistroPage() {
       arc_npro: form.arc_npro,
       arc_fechE: form.arc_fechE || null,
       arc_seg: form.arc_seg,
+      arc_fini: form.arc_fini,
+      arc_ffin: form.arc_ffin,
       arc_tema: form.arc_tema,
       arc_area: form.arc_area,
       arc_asun: form.arc_asun,
       arc_inic: form.arc_inic,
       arc_dest: form.arc_dest,
+      arc_pcla: form.arc_pcla,
       arc_visw: form.arc_visw === 'publico',
       arc_grup: form.arc_grup,
       arc_seri: form.arc_seri,
@@ -328,6 +337,8 @@ export default function EditarRegistroPage() {
                 <F label="Número protocolar"><input className="form-input" type="text" value={form.arc_npro} onChange={(e) => s('arc_npro', e.target.value)} /></F>
                 <F label="Fecha exacta"><input className="form-input" type="date" value={form.arc_fechE} onChange={(e) => s('arc_fechE', e.target.value)} /></F>
                 <F label="Segmento"><select className="form-select" value={form.arc_seg} onChange={(e) => s('arc_seg', e.target.value)}><option value="">Seleccionar</option>{SEGMENTOS.map((v) => <option key={v} value={v}>{v}</option>)}</select></F>
+                <F label="Fecha inicial"><input className="form-input" type="text" value={form.arc_fini} onChange={(e) => s('arc_fini', e.target.value)} /></F>
+                <F label="Fecha final"><input className="form-input" type="text" value={form.arc_ffin} onChange={(e) => s('arc_ffin', e.target.value)} /></F>
               </div>
             </Card>
             <Card title="Asunto y alcances">
@@ -337,6 +348,7 @@ export default function EditarRegistroPage() {
                 <F label="Asunto" wide><input className="form-input" type="text" value={form.arc_asun} onChange={(e) => s('arc_asun', e.target.value)} /></F>
                 <F label="Iniciador"><input className="form-input" type="text" value={form.arc_inic} onChange={(e) => s('arc_inic', e.target.value)} /></F>
                 <F label="Destinatario"><input className="form-input" type="text" value={form.arc_dest} onChange={(e) => s('arc_dest', e.target.value)} /></F>
+                <F label="Palabras clave" wide><input className="form-input" type="text" value={form.arc_pcla} onChange={(e) => s('arc_pcla', e.target.value)} /></F>
               </div>
             </Card>
           </div>
