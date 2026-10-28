@@ -53,4 +53,4 @@ db.sqlite3
 .coverage
 htmlcov/
 dbf/
-datos/
+
