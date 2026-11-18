@@ -196,14 +196,14 @@ export default function EditarRegistroPage() {
   }
 
   const s = (k: keyof typeof form, v: string) => setForm((f) => f ? { ...f, [k]: v } : f);
-  const addFiles = (fl: FileList | null) => { if (fl) setNewFiles((p) => [...p, ...Array.from(fl)]); };
+  const addFiles = (fl: FileList | null) => { if (!fl) return; const nuevos = Array.from(fl); setNewFiles((p) => [...p, ...nuevos]); };
   const submit = async () => {
     if (!form) return;
     setSaving(true);
     
     // Preparar datos para enviar al backend
     const payload: any = {
-      arc_fech: form.arc_fech,
+      arc_fech: form.arc_fech || null,
       arc_titu: form.arc_titu,
       arc_desc: form.arc_desc,
       arc_orig: form.arc_orig,
@@ -433,8 +433,8 @@ export default function EditarRegistroPage() {
               >
                 <Upload size={22} className={`mx-auto mb-2.5 ${dragOver ? 'text-sky-500' : 'text-slate-300'}`} />
                 <p className="text-sm font-medium text-slate-600">Agregar nuevos archivos</p>
-                <p className="mt-1 text-xs text-slate-400">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG</p>
-                <input id="fi-e" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" className="hidden" onChange={(e) => addFiles(e.target.files)} />
+                <p className="mt-1 text-xs text-slate-400">Imágenes, PDF, Word, Excel o cualquier otro archivo</p>
+                <input id="fi-e" type="file" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
               </div>
               {newFiles.length > 0 && (
                 <div className="mt-3 flex flex-col gap-2">
@@ -453,7 +453,7 @@ export default function EditarRegistroPage() {
             </div>
             <Card title="Visibilidad">
               <div className="flex gap-3">
-                {[{ v: 'publico', label: 'Público', desc: 'Visible para todos' }, { v: 'privado', label: 'Privado', desc: 'Solo administradores' }].map((opt) => (
+                {[{ v: 'publico', label: 'Público', desc: 'Visible para todos' }, { v: 'privado', label: 'Privado', desc: 'Solo usuarios con sesión iniciada' }].map((opt) => (
                   <label key={opt.v} className={`flex flex-1 cursor-pointer items-center gap-3 rounded-lg border p-4 transition-all ${form.arc_visw === opt.v ? 'border-sky-300 bg-sky-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                     <input type="radio" name="visibilidad" value={opt.v} checked={form.arc_visw === opt.v} onChange={(e) => s('arc_visw', e.target.value as 'publico' | 'privado')} className="accent-sky-700" />
                     <div>

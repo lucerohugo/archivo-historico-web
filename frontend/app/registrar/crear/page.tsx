@@ -104,7 +104,9 @@ export default function CrearRegistroPage() {
 
   const s = (k: keyof typeof INIT, v: string) => setForm((f) => ({ ...f, [k]: v }));
   const addFiles = (fl: FileList | null) => {
-    if (fl) setFiles((p) => [...p, ...Array.from(fl)]);
+    if (!fl) return;
+    const nuevos = Array.from(fl);
+    setFiles((p) => [...p, ...nuevos]);
   };
 
   const submit = async () => {
@@ -125,7 +127,7 @@ export default function CrearRegistroPage() {
       if (registroId === null) {
         // Construir payload con nombres de Django
         const payload = {
-          arc_fech: form.arc_fech,
+          arc_fech: form.arc_fech || null,
           arc_titu: form.arc_titu,
           arc_desc: form.arc_desc,
           arc_orig: form.arc_orig,
@@ -363,8 +365,8 @@ export default function CrearRegistroPage() {
                 <p className="text-sm font-medium text-slate-600">
                   {dragOver ? 'Suelte los archivos aquí' : 'Haga clic o arrastre archivos aquí'}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG</p>
-                <input id="fi" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" className="hidden" onChange={(e) => addFiles(e.target.files)} />
+                <p className="mt-1 text-xs text-slate-400">Imágenes, PDF, Word, Excel o cualquier otro archivo</p>
+                <input id="fi" type="file" multiple className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
               </div>
 
               {files.length > 0 && (
@@ -388,7 +390,7 @@ export default function CrearRegistroPage() {
             </div>
             <Card title="Visibilidad">
               <div className="flex gap-3">
-                {[{ v: 'publico', label: 'Público', desc: 'Visible para todos' }, { v: 'privado', label: 'Privado', desc: 'Solo administradores' }].map((opt) => (
+                {[{ v: 'publico', label: 'Público', desc: 'Visible para todos' }, { v: 'privado', label: 'Privado', desc: 'Solo usuarios con sesión iniciada' }].map((opt) => (
                   <label key={opt.v} className={`flex flex-1 cursor-pointer items-center gap-3 rounded-lg border p-4 transition-all ${form.arc_visw === opt.v ? 'border-sky-300 bg-sky-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                     <input type="radio" name="visibilidad" value={opt.v} checked={form.arc_visw === opt.v} onChange={(e) => s('arc_visw', e.target.value as any)} className="accent-sky-700" />
                     <div>

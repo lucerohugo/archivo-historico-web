@@ -5,3 +5,7 @@ db.sqlite3
 media/
 staticfiles/
 .env
+
+# Material de referencia (no lo usa el backend); el XML de WordPress sí se incluye para importar_wordpress
+datos/*.docx
+datos/*.pptx

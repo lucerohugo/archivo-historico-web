@@ -54,3 +54,7 @@ db.sqlite3
 htmlcov/
 dbf/
 
+
+# Material de referencia: no se sube al repo
+datos/*.docx
+datos/*.pptx

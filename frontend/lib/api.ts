@@ -79,6 +79,23 @@ async function authFetch(url: string, init: RequestInit = {}): Promise<Response>
 }
 
 /**
+ * Convertir la respuesta de error del backend en un mensaje legible.
+ * DRF devuelve {detail: "..."} o, en errores de validación, {campo: ["msg", ...]}.
+ */
+function mensajeDeError(errorData: any, status: number): string {
+  if (errorData?.detail) return String(errorData.detail);
+  if (errorData && typeof errorData === 'object') {
+    const partes = Object.entries(errorData).map(([campo, msgs]) => {
+      const texto = Array.isArray(msgs) ? msgs.join(' ') : String(msgs);
+      return campo === 'non_field_errors' ? texto : `${campo}: ${texto}`;
+    });
+    if (partes.length > 0) return partes.join(' | ');
+  }
+  if (status === 413) return 'El archivo es demasiado grande.';
+  return `Error ${status}`;
+}
+
+/**
  * Hacer fetch a la API con manejo de errores
  */
 async function apiCall<T>(
@@ -104,7 +121,7 @@ async function apiCall<T>(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       return {
-        error: errorData.detail || `Error ${response.status}`,
+        error: mensajeDeError(errorData, response.status),
         status: response.status,
       };
     }
@@ -129,7 +146,7 @@ async function apiCall<T>(
 
 export interface RegistroHistoricoDTO {
   arc_codi?: number; // Auto
-  arc_fech: string; // Fecha (YYYY-MM-DD)
+  arc_fech: string | null; // Fecha (YYYY-MM-DD)
   arc_titu: string; // Título
   arc_desc?: string; // Descripción
   arc_orig?: string; // Origen
@@ -343,7 +360,7 @@ async function apiUpload<T>(
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       return {
-        error: errorData.detail || errorData.archivo?.[0] || `Error ${response.status}`,
+        error: mensajeDeError(errorData, response.status),
         status: response.status,
       };
     }
@@ -360,8 +377,8 @@ async function apiUpload<T>(
 function detectarTipoArchivo(file: File): ArchivoAdjuntoDTO['tipo'] {
   const ext = file.name.toLowerCase().split('.').pop() || '';
   if (ext === 'pdf') return 'pdf';
-  if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext)) return 'imagen';
-  if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'odt'].includes(ext)) return 'documento';
+  if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tif', 'tiff', 'heic'].includes(ext)) return 'imagen';
+  if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'odt', 'ods', 'odp', 'rtf', 'csv'].includes(ext)) return 'documento';
   return 'otro';
 }
 
@@ -371,8 +388,13 @@ function detectarTipoArchivo(file: File): ArchivoAdjuntoDTO['tipo'] {
 export async function uploadArchivo(registroId: number, file: File) {
   const formData = new FormData();
   formData.append('registro', String(registroId));
-  formData.append('archivo', file);
-  formData.append('nombre', file.name);
+  // El nombre en disco se acorta (el sistema de archivos admite hasta 255 bytes);
+  // el nombre original completo se guarda aparte en 'nombre'
+  const punto = file.name.lastIndexOf('.');
+  const ext = punto > 0 ? file.name.slice(punto).slice(0, 10) : '';
+  const base = punto > 0 ? file.name.slice(0, punto) : file.name;
+  formData.append('archivo', file, base.slice(0, 80) + ext);
+  formData.append('nombre', file.name.slice(0, 255)); // límite del campo en el backend
   formData.append('tipo', detectarTipoArchivo(file));
   return apiUpload<ArchivoAdjuntoDTO>('/archivos/', formData);
 }

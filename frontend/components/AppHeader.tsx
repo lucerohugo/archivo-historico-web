@@ -34,7 +34,18 @@ export default function AppHeader({ showAdminNav, breadcrumb }: AppHeaderProps) 
       <div className="border-b border-slate-100 px-10 py-5 flex items-center justify-between">
         {/* Logo */}
         <div className="logo-area">
-          <Link href="/" className="logo-area no-underline">
+          <Link
+            href="/"
+            className={`logo-area no-underline ${
+              showAdminNav
+                ? ''
+                : `-my-1 rounded-lg border px-3 py-1 transition-colors ${
+                    pathname.startsWith('/junta')
+                      ? 'border-slate-200 hover:border-sky-200 hover:bg-slate-50'
+                      : 'border-sky-200 bg-sky-50'
+                  }`
+            }`}
+          >
             <Image
               src="/escudo-episcopal-212x300.png"
               alt="Escudo Episcopal Diocesano"
@@ -47,6 +58,25 @@ export default function AppHeader({ showAdminNav, breadcrumb }: AppHeaderProps) 
               <small>Diocesano</small>
             </div>
           </Link>
+
+          {!showAdminNav && (
+            <>
+              <Link
+                href="/junta"
+                className={`logo-area -my-1 self-stretch rounded-lg border px-3 py-1 no-underline transition-colors ${
+                  pathname.startsWith('/junta')
+                    ? 'border-sky-200 bg-sky-50'
+                    : 'border-slate-200 hover:border-sky-200 hover:bg-slate-50'
+                }`}
+              >
+                {/* TODO: logo de la Junta */}
+                <div className="logo-text">
+                  Junta Diocesana
+                  <small>de Historia Eclesiástica</small>
+                </div>
+              </Link>
+            </>
+          )}
 
           {breadcrumb && breadcrumb.length > 0 && (
             <div className="flex items-center gap-1.5 ml-2">

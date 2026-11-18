@@ -82,6 +82,8 @@ export default function AdminRegistrosPage() {
     if (!result.error) {
       setRegistros((r) => r.filter((reg) => reg.arc_codi !== id));
       setCount((c) => Math.max(0, c - 1));
+    } else {
+      alert(`No se pudo eliminar el registro: ${result.error}`);
     }
     setDeleteConfirm(null);
   };

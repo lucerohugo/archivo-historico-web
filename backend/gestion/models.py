@@ -219,6 +219,8 @@ class ArchivoAdjunto(models.Model):
     )
     archivo = models.FileField(
         upload_to='registros/%Y/%m/%d/',
+        # La ruta incluye "registros/AAAA/MM/DD/": con el default (100) fallaban nombres largos
+        max_length=500,
         verbose_name="Archivo"
     )
     nombre = models.CharField(
